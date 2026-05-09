@@ -24,6 +24,5 @@ jobs:
           configurationFile: renovate.json
           token: ${{ steps.app-token.outputs.token }}
         env:
-          RENOVATE_AUTODISCOVER: "true"
-          RENOVATE_AUTODISCOVER_FILTER: "spigell/*"
+          RENOVATE_REPOSITORIES: ${{ secrets.RENOVATE_REPOSITORIES }}
           LOG_LEVEL: debug
