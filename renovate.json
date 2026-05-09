@@ -1,0 +1,70 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "branchPrefix": "renovate/chore/",
+  "extends": [
+    "config:recommended",
+    ":separateMajorReleases",
+    ":combinePatchMinorReleases",
+    "group:monorepos",
+    "group:recommended",
+    "mergeConfidence:all-badges"
+  ],
+  "dependencyDashboard": true,
+  "prConcurrentLimit": 20,
+  "prHourlyLimit": 0,
+  "labels": ["dependencies", "renovate"],
+  "gitAuthor": "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions updates"
+    },
+    {
+      "enabled": false,
+      "matchPackageNames": ["/ghcr.io/spigell/*/"]
+    },
+    {
+      "description": "Don't update golang in FROM lines, we use ARG instead",
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["golang"],
+      "enabled": false
+    },
+    {
+      "matchPackageNames": ["python"],
+      "allowedVersions": "< 3.14.0",
+      "automerge": false
+    },
+    {
+      "matchPackageNames": ["ubuntu"],
+      "allowedVersions": "<25"
+    },
+    {
+      "matchDepNames": ["spigell-codex-binary"],
+      "extractVersion": "^rust-(?<version>v\\d+\\.\\d+\\.\\d+)$",
+      "versioning": "semver-coerced"
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "Custom Dockerfile Manager",
+      "customType": "regex",
+      "fileMatch": ["(^|/)Dockerfile$"],
+      "matchStrings": [
+        "ARG\\s+(.+?)_(?:VERSION|REF)=(?<currentValue>[^\\s]+)\\s+#\\s+renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?\\s*(?:\\n|$)"
+      ]
+    },
+    {
+      "description": "Custom Workflow Manager",
+      "customType": "regex",
+      "fileMatch": ["^\\.github/workflows/.*\\.ya?ml$"],
+      "matchStrings": [
+        "\\s+version:\\s*['\"]?(?<currentValue>[^\\s'\"]+)['\"]?\\s+#\\s+renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?\\s*(?:\\n|$)"
+      ]
+    }
+  ]
+}
