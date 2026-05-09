@@ -11,6 +11,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Validate GitHub App private key
+        shell: bash
+        env:
+          RENOVATE_PRIVATE_KEY: ${{ secrets.RENOVATE_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          key_file="$(mktemp)"
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s\n' "$RENOVATE_PRIVATE_KEY" > "$key_file"
+          openssl pkey -in "$key_file" -noout
       - name: Generate GitHub App Token
         id: app-token
         uses: actions/create-github-app-token@v3
