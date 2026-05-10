@@ -52,21 +52,25 @@
       "matchDepNames": ["spigell-codex-binary"],
       "extractVersion": "^rust-(?<version>v\\d+\\.\\d+\\.\\d+)$",
       "versioning": "semver-coerced"
+    },
+    {
+      "matchPackageNames": ["linuxserver/openssh-server"],
+      "versioning": "regex:^version-(?<major>\\d+)\\.(?<minor>\\d+)_p(?<patch>\\d+)-r(?<build>\\d+)$"
     }
   ],
   "customManagers": [
     {
       "description": "Custom Dockerfile Manager",
       "customType": "regex",
-      "fileMatch": ["(^|/)Dockerfile$"],
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
       "matchStrings": [
-        "ARG\\s+(.+?)_(?:VERSION|REF)=(?<currentValue>[^\\s]+)\\s+#\\s+renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?\\s*(?:\\n|$)"
+        "ARG\\s+[A-Za-z0-9_]+_(?:VERSION|GIT_REF|IMAGE_TAG)\\s*=\\s*['\"]?(?<currentValue>[^\\s'\"#]+)['\"]?\\s+#\\s+renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?\\s*(?:\\n|$)"
       ]
     },
     {
       "description": "Custom Workflow Manager",
       "customType": "regex",
-      "fileMatch": ["^\\.github/workflows/.*\\.ya?ml$"],
+      "managerFilePatterns": ["/^\\.github/workflows/.*\\.ya?ml$/"],
       "matchStrings": [
         "\\s+version:\\s*['\"]?(?<currentValue>[^\\s'\"]+)['\"]?\\s+#\\s+renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?\\s*(?:\\n|$)"
       ]
