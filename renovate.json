@@ -24,6 +24,11 @@
       "groupName": "github-actions updates"
     },
     {
+      "description": "Group identical packages across all files",
+      "matchPackageNames": ["*"],
+      "groupName": "{{{depName}}}"
+    },
+    {
       "description": "Keep the Pulumi CLI on the manually approved version",
       "matchDepNames": ["pulumi/pulumi", "@pulumi/pulumi"],
       "allowedVersions": "/^3\\.236\\.0$/"
