@@ -25,6 +25,11 @@
       "groupName": "github-actions updates"
     },
     {
+      "description": "Keep the Pulumi CLI on the manually approved version",
+      "matchDepNames": ["pulumi/pulumi"],
+      "allowedVersions": "/^3\\.236\\.0$/"
+    },
+    {
       "enabled": false,
       "matchPackageNames": ["/ghcr.io/spigell/*/"]
     },
