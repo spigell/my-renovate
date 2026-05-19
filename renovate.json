@@ -46,15 +46,6 @@
     {
       "matchPackageNames": ["ubuntu"],
       "allowedVersions": "<25"
-    },
-    {
-      "matchDepNames": ["spigell-codex-binary"],
-      "extractVersion": "^rust-(?<version>v\\d+\\.\\d+\\.\\d+)$",
-      "versioning": "semver-coerced"
-    },
-    {
-      "matchPackageNames": ["linuxserver/openssh-server"],
-      "versioning": "regex:^version-(?<major>\\d+)\\.(?<minor>\\d+)_p(?<patch>\\d+)-r(?<build>\\d+)$"
     }
   ]
 }
