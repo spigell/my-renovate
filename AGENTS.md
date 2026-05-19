@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Skills index
-- `renovate-guider` (`.agents/skills/renovate-guider/SKILL.md`): Troubleshoot this repository's Renovate setup, including custom regex managers, missed dependency updates, Dependency Dashboard states, no-work branches, GitHub Actions workflow permission failures, and Dockerfile or workflow version PRs that Renovate did not create.
+- `renovate-guider` (`.agents/skills/renovate-guider/SKILL.md`): Troubleshoot and validate the central Renovate runner in `my-renovate`, including the shared `renovate.json`, custom regex managers, Dependency Dashboard states, and runner permissions.
 
 ## Repository scope
 - This repository owns the central Renovate GitHub Action workflow for the `spigell` account.
