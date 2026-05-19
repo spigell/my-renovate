@@ -29,11 +29,6 @@
       "groupName": "{{{depName}}}"
     },
     {
-      "description": "Keep the Pulumi CLI on the manually approved version",
-      "matchDepNames": ["pulumi/pulumi", "@pulumi/pulumi"],
-      "allowedVersions": "/^3\\.236\\.0$/"
-    },
-    {
       "enabled": false,
       "matchPackageNames": ["/ghcr.io/spigell/*/"]
     },
@@ -60,24 +55,6 @@
     {
       "matchPackageNames": ["linuxserver/openssh-server"],
       "versioning": "regex:^version-(?<major>\\d+)\\.(?<minor>\\d+)_p(?<patch>\\d+)-r(?<build>\\d+)$"
-    }
-  ],
-  "customManagers": [
-    {
-      "description": "Custom Dockerfile Manager",
-      "customType": "regex",
-      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
-      "matchStrings": [
-        "ARG\\s+[A-Za-z0-9_]+_(?:VERSION|GIT_REF|IMAGE_TAG)\\s*=\\s*['\"]?(?<currentValue>[^\\s'\"#]+)['\"]?\\s+#\\s+renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?\\s*(?:\\n|$)"
-      ]
-    },
-    {
-      "description": "Custom Workflow Manager",
-      "customType": "regex",
-      "managerFilePatterns": ["/^\\.github/(?:workflows|actions)/.*\\.ya?ml$/"],
-      "matchStrings": [
-        "\\s+[A-Za-z0-9_-]*version:\\s*['\"]?(?<currentValue>[^\\s'\"]+)['\"]?\\s+#\\s+renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?\\s*(?:\\n|$)"
-      ]
     }
   ]
 }

@@ -26,12 +26,20 @@ Always run the validator against the shared config before testing behavior or pu
 
 `yarn dlx --package renovate renovate-config-validator --strict /spigell-reforge-ai/my-shared-infra/my-renovate/renovate.json`
 
-### 4. Local Dry Runs for the Central Config
-Run Renovate in dry-run mode against a minimal test case locally to verify the regex logic without interacting with GitHub APIs:
+### 4. Local Dry Runs with Both Configs
+Run Renovate in dry-run mode against the target repository while loading both the repository config and the central shared config from absolute paths.
 
-`LOG_LEVEL=debug yarn dlx --package renovate renovate --platform=local --dry-run=full --print-config=true`
+Use:
 
-Search the output strictly for `Detected dependencies`, `extractVersion`, and `newVersion` to ensure the regex changes correctly parsed the targeted files.
+`LOG_LEVEL=debug yarn dlx --package renovate renovate --platform=local --dry-run=full --print-config=true --repo-cache=reset --local-dir /full/path/to/target-repo --require-config=ignored --config-file /full/path/to/target-repo/renovate.json --extends local>spigell/my-renovate --global-config /spigell-reforge-ai/my-shared-infra/my-renovate/renovate.json`
+
+Notes:
+* Replace `/full/path/to/target-repo` with the absolute repository path under test.
+* Use full paths for both config files. Do not rely on the shell working directory.
+* The repository config remains the repo's own `renovate.json`; the shared config comes from `/spigell-reforge-ai/my-shared-infra/my-renovate/renovate.json`.
+* If the repository extends a narrower preset instead of `local>spigell/my-renovate`, keep that repo-local `extends` value and still pass the shared global config path explicitly.
+
+Search the output strictly for `Detected dependencies`, `extractVersion`, `newVersion`, and `packageFiles with updates` to ensure the regex changes correctly parsed the targeted files and the combined config resolved as expected.
 
 ### 5. Debugging the Central Runner Workflow
 If local validation passes but the hosted pipeline fails, or PRs do not appear:

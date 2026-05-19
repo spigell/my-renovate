@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "customManagers": [
+    {
+      "description": "Custom Dockerfile Manager",
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
+      "matchStrings": [
+        "ARG\\s+[A-Za-z0-9_]+_(?:VERSION|GIT_REF|IMAGE_TAG)\\s*=\\s*['\"]?(?<currentValue>[^\\s'\"#]+)['\"]?\\s+#\\s+renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?\\s*(?:\\n|$)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "customManagers": [
+    {
+      "description": "Custom Workflow Manager",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/(?:workflows|actions)/.*\\.ya?ml$/"],
+      "matchStrings": [
+        "\\s+[A-Za-z0-9_-]*version:\\s*['\"]?(?<currentValue>[^\\s'\"]+)['\"]?\\s+#\\s+renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?\\s*(?:\\n|$)"
+      ]
+    }
+  ]
+}
