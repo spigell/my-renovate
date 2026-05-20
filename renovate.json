@@ -49,7 +49,7 @@
     {
       "description": "Keep the Pulumi CLI on the manually approved version",
       "matchDepNames": ["pulumi/pulumi", "@pulumi/pulumi"],
-      "allowedVersions": "/^3\\.236\\.0$/"
+      "allowedVersions": "<=3.236.0"
     }
   ]
 }
