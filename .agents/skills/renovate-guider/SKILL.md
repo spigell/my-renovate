@@ -24,22 +24,37 @@ The central config implements specific custom regex managers. When troubleshooti
 ### 3. Validating the Central Config
 Always run the validator against the shared config before testing behavior or pushing changes:
 
-`yarn dlx --package renovate renovate-config-validator --strict /spigell-reforge-ai/my-shared-infra/my-renovate/renovate.json`
+`yarn dlx --package renovate renovate-config-validator --strict /spigell-reforge-ai/my-shared-infra/my-renovate/default.json`
 
-### 4. Local Dry Runs with Both Configs
-Run Renovate in dry-run mode against the target repository while loading both the repository config and the central shared config from absolute paths.
+### 4. Local Dry Runs with Target Repository
+To test Renovate against a specific target repository (e.g., `/spigell-reforge-ai/my-shared-infra/my-images`) and see its proposed updates, you must navigate into that repository's directory. This ensures Renovate correctly identifies the local context and its `renovate.json` configuration.
 
-Use:
+#### Steps:
+1. **Navigate to the target repository:**
+   `cd /spigell-reforge-ai/my-shared-infra/my-images`
 
-`LOG_LEVEL=debug yarn dlx --package renovate renovate --platform=local --dry-run=full --print-config=true --repo-cache=reset --local-dir /full/path/to/target-repo --require-config=ignored --config-file /full/path/to/target-repo/renovate.json --extends local>spigell/my-renovate --global-config /spigell-reforge-ai/my-shared-infra/my-renovate/renovate.json`
+2. **Temporarily inline the central config rules:**
+   Because `platform=local` does not support fetching remote `extends` (like `github>spigell/my-renovate`), you must temporarily copy the necessary custom rules (managers, datasources) directly into the target repository's `renovate.json` for the duration of the test.
 
-Notes:
-* Replace `/full/path/to/target-repo` with the absolute repository path under test.
-* Use full paths for both config files. Do not rely on the shell working directory.
-* The repository config remains the repo's own `renovate.json`; the shared config comes from `/spigell-reforge-ai/my-shared-infra/my-renovate/renovate.json`.
-* If the repository extends a narrower preset instead of `local>spigell/my-renovate`, keep that repo-local `extends` value and still pass the shared global config path explicitly.
+3. **Run Renovate in dry-run mode:**
+   `LOG_LEVEL=debug yarn dlx --package renovate renovate --platform=local --dry-run=full --print-config=true`
 
-Search the output strictly for `Detected dependencies`, `extractVersion`, `newVersion`, and `packageFiles with updates` to ensure the regex changes correctly parsed the targeted files and the combined config resolved as expected.
+4. **Restore the `extends` configuration:**
+   After a successful local check, remove the temporarily inlined rules and ensure the repository's `renovate.json` includes the central config for hosted execution:
+   ```json
+   {
+     "extends": [
+       "github>spigell/my-renovate"
+     ]
+   }
+   ```
+
+#### Notes:
+* Replace `/spigell-reforge-ai/my-shared-infra/my-images` with the actual path to your target repository.
+* The `--platform=local` flag tells Renovate to operate on the local filesystem.
+* `--dry-run=full` shows all proposed changes without applying them.
+* `--print-config=true` displays the resolved Renovate configuration for debugging.
+* Search the output strictly for `Detected dependencies`, `extractVersion`, `newVersion`, and `packageFiles with updates` to ensure your changes correctly parsed the targeted files and the combined config resolved as expected.
 
 ### 5. Debugging the Central Runner Workflow
 If local validation passes but the hosted pipeline fails, or PRs do not appear:
