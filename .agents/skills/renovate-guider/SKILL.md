@@ -33,9 +33,14 @@ To test Renovate against a specific target repository (e.g., `/spigell-reforge-a
 1. **Navigate to the target repository:**
    `cd /spigell-reforge-ai/my-shared-infra/my-images`
 
-2. **Ensure the target repository's `renovate.json` extends the central config (if applicable):**
-   For example, `my-images/renovate.json` should contain:
+2. **Temporarily inline the central config rules:**
+   Because `platform=local` does not support fetching remote `extends` (like `github>spigell/my-renovate`), you must temporarily copy the necessary custom rules (managers, datasources) directly into the target repository's `renovate.json` for the duration of the test.
 
+3. **Run Renovate in dry-run mode:**
+   `LOG_LEVEL=debug yarn dlx --package renovate renovate --platform=local --dry-run=full --print-config=true`
+
+4. **Restore the `extends` configuration:**
+   After a successful local check, remove the temporarily inlined rules and ensure the repository's `renovate.json` includes the central config for hosted execution:
    ```json
    {
      "extends": [
@@ -43,11 +48,6 @@ To test Renovate against a specific target repository (e.g., `/spigell-reforge-a
      ]
    }
    ```
-
-   This ensures the central configuration rules (including custom managers) are applied.
-
-3. **Run Renovate in dry-run mode:**
-   `LOG_LEVEL=debug yarn dlx --package renovate renovate --platform=local --dry-run=full --print-config=true`
 
 #### Notes:
 * Replace `/spigell-reforge-ai/my-shared-infra/my-images` with the actual path to your target repository.
