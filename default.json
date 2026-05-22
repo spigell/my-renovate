@@ -28,10 +28,6 @@
       "groupName": "{{{depName}}}"
     },
     {
-      "enabled": false,
-      "matchPackageNames": ["/ghcr.io/spigell/*/"]
-    },
-    {
       "description": "Don't update golang in FROM lines, we use ARG instead",
       "matchManagers": ["dockerfile"],
       "matchPackageNames": ["golang"],
