@@ -13,6 +13,7 @@
   "prConcurrentLimit": 20,
   "prHourlyLimit": 0,
   "labels": ["dependencies", "renovate"],
+  "commitMessageExtra": "",
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch"],
