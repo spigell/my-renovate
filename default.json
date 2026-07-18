@@ -44,7 +44,11 @@
     },
     {
       "description": "Keep the Pulumi CLI on the manually approved version",
-      "matchDepNames": ["pulumi/pulumi", "@pulumi/pulumi"],
+      "matchDepNames": [
+        "pulumi/pulumi",
+        "@pulumi/pulumi",
+        "ghcr.io/spigell/pulumi-workbench"
+      ],
       "allowedVersions": "<=3.244.0"
     }
   ]
