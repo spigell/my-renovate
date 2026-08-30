@@ -49,7 +49,7 @@
         "@pulumi/pulumi",
         "ghcr.io/spigell/pulumi-workbench"
       ],
-      "allowedVersions": "<=3.244.0"
+      "allowedVersions": "<=3.252.0"
     }
   ]
 }
