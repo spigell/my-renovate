@@ -2,6 +2,14 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "customManagers": [
     {
+      "description": "Dockerfile Git branch digest Manager",
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
+      "matchStrings": [
+        "ARG\\s+[A-Za-z0-9_]+_GIT_REF\\s*=\\s*['\"]?(?<currentValue>[^\\s'\"#]+)['\"]?\\s*\\nARG\\s+[A-Za-z0-9_]+_GIT_SHA\\s*=\\s*['\"]?(?<currentDigest>[a-f0-9]{40})['\"]?\\s+#\\s+renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?\\s*(?:\\n|$)"
+      ]
+    },
+    {
       "description": "Custom Dockerfile Manager",
       "customType": "regex",
       "managerFilePatterns": ["/(^|/)Dockerfile$/"],
