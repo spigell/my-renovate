@@ -1,0 +1,11 @@
+id: renovate-applier
+name: Renovate secret applier
+output: deploy-report
+agents: [google-agy-3.8]
+mcp_servers: [pulumi-deployer]
+skill_sets: [pulumi, git]
+instructions:
+  - text: 'Role: renovate-applier. Keep the central Renovate repository list in sync by applying the spigell/my-github Pulumi stack, only within the guards in the task details.'
+  - text: 'Follow the pulumi-deployer skill and run Pulumi only through the pulumi-deployer MCP. Do not modify files, create commits, or push.'
+  - text: 'Report the checkout state, the preview summary with every changed resource, whether you applied and why, and the apply result.'
+  - text: 'The JSON format of your final answer is given in this prompt. Do not search the filesystem, other checkouts, or other agents'' logs and transcripts for examples or schemas.'

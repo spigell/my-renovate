@@ -1,0 +1,141 @@
+# The renovate-hourly autopilot: onboards spigell repositories to the central
+# Renovate job and moves each 'Configure Renovate' PR to merge. Exported from
+# the live reforge registry on 2026-10-01.
+name: renovate-hourly
+cron: 0 * * * *
+timezone: UTC
+template:
+  members:
+  - key: autopilot
+    template:
+      steps:
+      - id: plan
+        role: autopilot-planner
+        agents:
+        - gpt-codex-6
+        config:
+          gpt-codex-6:
+            reasoning_effort: medium
+        output:
+          params:
+            max_tasks: 6
+      - id: feedback
+        role: autopilot-feedback
+        agents:
+        - google-agy-3.8
+        wait_for:
+          tasks_from:
+          - plan
+          until: terminal
+          timeout_hours: 24
+      skill_sets:
+      - renovate
+      kind: chore
+      delivery: none
+      priority: low
+      max_rounds: 3
+      goal: Onboard spigell repositories to the central Renovate job and move each 'Configure Renovate' PR to merge
+      details: |
+        Context: the central Renovate job in spigell/my-renovate (cron 0 */3 * * * UTC) scans the repositories in its RENOVATE_REPOSITORIES Actions secret. spigell/my-github builds that list from the renovateEnabled flag in src/repos-data.ts, but the secret only changes when the my-github Pulumi stack is applied. For each newly listed repository, Renovate opens a 'Configure Renovate' PR on branch renovate/configure and opens no dependency PRs there until it merges. The planner outputs worker tasks; the runner creates them, orders them by `after`, and runs the feedback step once they all finish. Neither step changes a repository or a PR.
+
+        Planner:
+        1. Configure Renovate PRs. With github-mcp search_pull_requests, list OPEN PRs in user:spigell authored by spigell-renovate[bot] with head branch renovate/configure. Take at most 10, oldest first; name the rest in the summary as deferred. For each PR, check these gates and stop at the first that fails (name it in the summary as skipped):
+           0. Access: in spigell/my-github src/repos-data.ts (get_file_contents), the repository's entry has renovateEnabled: true and includeBotContributors: true.
+           a. Files (pull_request_read get_files): renovate.json is the only changed file and it is added.
+           b. Content (get_diff): renovate.json is a JSON object with only $schema and, optionally, extends whose entries all start with github>spigell/my-renovate.
+           c. State (get): open, not a draft, targets the default branch, mergeable_state clean or unstable.
+           Then the checks (get_check_runs):
+           - Any failed, cancelled or pending: output the ci-fix task (key "<repo>#<n>:ci-fix") and the tailor task (key "<repo>#<n>:tailor", after ["<repo>#<n>:ci-fix"]).
+           - All passed: output the tailor task alone.
+           From the PR's 'What to Expect' section, put in the summary the number of PRs Renovate will create and the entries on renovate/chore/major-* branches.
+        2. Onboarding. Only if fewer than 3 Configure Renovate PRs are open: in src/repos-data.ts, pick the first repository, in file order, that has renovateEnabled unset or false, has includeBotContributors: true, is not archived, is not my-renovate, and has no comment opting out of Renovate. Output the onboarding task (key "onboarding:<repo>") and the secret-sync task (key "secret-sync:<repo>", after ["onboarding:<repo>"]). One repository per run. If none remain, say in the summary 'all repositories are onboarded'.
+        3. Secret not applied. For a repository with renovateEnabled: true, no renovate.json on its default branch, no open Configure Renovate PR, and a merged onboarding PR in spigell/my-github older than 4 hours: output the secret-sync task alone (key "secret-sync:<repo>").
+        Always output a task when the rules say so: the runner skips a key that already has an active task or one created in the last 24 hours, and resolves `after` to it.
+
+        onboarding task:
+          repo: spigell/my-github
+          branch: reforge/chore/renovate-onboarding-<repo name>
+          steps:
+            - role: renovate-onboarder
+              agents: [google-agy-3.8]
+          kind: chore
+          workspace: isolated
+          delivery: pr
+          priority: low
+          goal: Enable the central Renovate job for spigell/<repo>
+          details: >-
+            Context: the central Renovate job in spigell/my-renovate scans the repositories in RENOVATE_REPOSITORIES, which this repository builds from the renovateEnabled flag in src/repos-data.ts.
+            Scope: set renovateEnabled: true for the <repo> entry only, matching the file's existing style (add the line if the entry has none). Change nothing else.
+            Validate in the foreground: `yarn install --frozen-lockfile`, `yarn build` and `npx prettier --check src/repos-data.ts`. Do not run the Renovate validator: this repository has no renovate.json change.
+            Report: the diff summary and the checks run with pass/fail. Do not queue any follow-up.
+            Stop if: the <repo> entry is missing, lacks includeBotContributors: true, or the change would need anything beyond flipping that flag; report it.
+
+        secret-sync task:
+          repo: spigell/my-github
+          branch: main
+          steps:
+            - role: renovate-applier
+              agents: [google-agy-3.8]
+          kind: deploy
+          workspace: isolated
+          delivery: none
+          priority: low
+          goal: Apply the my-github stack when the only change is the RENOVATE_REPOSITORIES secret, so spigell/<repo> reaches Renovate
+          details: >-
+            Context: merged onboarding PRs flip renovateEnabled in spigell/my-github src/repos-data.ts, but the RENOVATE_REPOSITORIES Actions secret on spigell/my-renovate only changes when the my-github Pulumi stack is applied.
+            Steps:
+            1. Checkout check of the shared checkout /spigell-reforge-ai/my-shared-infra/my-github (the pulumi-deployer MCP reads this path): run `git -c url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf=git@github.com: -C /spigell-reforge-ai/my-shared-infra/my-github fetch origin` (the token from the environment, for this command only; never change git config or look for SSH keys) and `git -C /spigell-reforge-ai/my-shared-infra/my-github status --short --branch`. It must be on main with a clean working tree. If it is behind origin/main and clean, run `git -C /spigell-reforge-ai/my-shared-infra/my-github merge --ff-only origin/main`. If it has local changes, is on another branch, or has diverged, stop and report; never stash, reset or discard anything.
+            2. Preview the stack `main` of project /spigell-reforge-ai/my-shared-infra/my-github through the pulumi-deployer MCP.
+            3. If the preview has 0 changes, report 'in sync' and stop.
+            4. Apply through pulumi-deployer ONLY if every change is an update of the RENOVATE_REPOSITORIES Actions secret for repository my-renovate (github:index/actionsSecret or similar). Any other change, and any create, replace or delete, means stop without applying and report the full preview.
+            5. After an apply, run a final preview and report 0 changes, or what remains.
+            Report: checkout state, preview summary (counts plus every changed resource and property), applied or not with the reason, apply result, final preview.
+            Stop if: any guard above trips, or pulumi-deployer is unavailable; report and do nothing else.
+
+        ci-fix task:
+          repo: spigell/<repo>
+          branch: reforge/fix/renovate-onboarding-ci
+          steps:
+            - role: ci-fixer
+              config: { gpt-codex-6: { reasoning_effort: medium } }
+            - role: reviewer
+              agents: [gpt-codex-6]
+              config: { gpt-codex-6: { reasoning_effort: medium } }
+          kind: fix
+          workspace: isolated
+          delivery: pr
+          priority: medium
+          goal: Make the default branch CI of spigell/<repo> green so its Configure Renovate PR #<n> can merge
+          details: >-
+            Context: the Renovate onboarding PR #<n> in spigell/<repo> only adds renovate.json, but these checks fail on it: <each failing check name with its job URL>. They fail because of the repository, not the PR.
+            Out of scope: renovate.json and Renovate PRs.
+
+        tailor task:
+          repo: spigell/<repo>
+          branch: renovate/configure
+          pull_request_number: <n>
+          steps:
+            - role: coder
+              agents: [gpt-codex-6]
+              config: { gpt-codex-6: { reasoning_effort: medium } }
+            - role: reviewer
+              agents: [gpt-codex-6]
+              config: { gpt-codex-6: { reasoning_effort: medium } }
+          skill_sets: [renovate]
+          kind: chore
+          workspace: isolated
+          delivery: pr
+          priority: low
+          goal: Tailor renovate.json in the Configure Renovate PR #<n> of spigell/<repo> to extend the central spigell/my-renovate config
+          details: >-
+            Context: PR #<n> (branch renovate/configure, opened by spigell-renovate[bot]) onboards this repository to the central Renovate job, and its renovate.json holds only $schema. The central config is extended per repository, never globally.
+            Scope: change only renovate.json on this branch. Write it as exactly {"$schema": "https://docs.renovatebot.com/renovate-schema.json", "extends": [...]} where extends is, in this order: "github>spigell/my-renovate" always; "github>spigell/my-renovate//presets/workflow-managers" only if a file under .github/workflows or .github/actions has a line containing "# renovate: datasource="; "github>spigell/my-renovate//presets/dockerfile-managers" only if a file named Dockerfile has an ARG line containing "# renovate: datasource=". No other keys.
+            Validate in the foreground with `yarn dlx --package renovate renovate-config-validator --strict renovate.json`.
+            Done when: renovate.json has exactly that content and the validator passes.
+            Report: the extends list with file:line evidence for each preset added, and the validator output.
+            Stop if: renovate.json already has keys other than $schema and extends, or the branch changes files other than renovate.json; report it.
+
+        Feedback:
+        For each task the planner created, report its final status, its PR link, and what it moved forward: the repository onboarded, the secret applied, the onboarding PR green or merged (check with pull_request_read). Name archived tasks with the dependency that stopped them, list every needs-operator item with the reason, and say what the next run will pick up.
+
+        Stop if: github-mcp cannot search or read pull requests; output no tasks and report the error.

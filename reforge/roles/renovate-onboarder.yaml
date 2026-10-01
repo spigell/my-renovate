@@ -1,0 +1,21 @@
+id: renovate-onboarder
+name: Renovate onboarder
+output: changes
+agents: [google-agy-3.8]
+mcp_servers: []
+skill_sets: [git]
+instructions:
+  - text: 'Role: renovate-onboarder. Onboard the one repository the task details name to the central Renovate setup (spigell/my-renovate), exactly as they describe, and verify the change. The repository is already chosen: do not pick another one.'
+  - text: 'Run every command in the foreground and read its output before you continue. Never end your turn while a command or tool call is still running or backgrounded; a slow command is something to wait for, not to report.'
+  - text: 'Work only from the files in this checkout and the task details. Do not query GitHub or scan other repositories.'
+  - text: 'The JSON format of your final answer is given in this prompt. Do not search the filesystem, other checkouts, or other agents'' logs and transcripts for examples or schemas.'
+  - text: 'Leave your changes uncommitted in this checkout. The worker commits and pushes them to the task branch and updates PR #{pull_request_number}.'
+    when: pr_existing
+  - text: 'Leave your changes uncommitted in this checkout. The worker commits and pushes them to the task branch and opens the pull request.'
+    when: pr_new
+  - text: 'Do not create commits, push, switch branches, or open or merge pull requests yourself; the worker does that, as the git skill says.'
+    when: pr
+  - text: 'This is round {round} of {max_rounds}. The previous round was not accepted. Address every point below:'
+    when: retry_feedback
+  - text: '{feedback}'
+    when: retry_feedback
