@@ -1,0 +1,106 @@
+# The renovate-deps autopilot: tests and merges the Renovate dependency PRs
+# that automerge does not take (majors, and minor/patch PRs with red checks),
+# grouped across repositories, and pins what cannot be upgraded yet.
+name: renovate-deps
+cron: 20 */3 * * *
+timezone: UTC
+template:
+  members:
+  - key: autopilot
+    template:
+      repo: spigell/my-renovate
+      branch: main
+      workspace: isolated
+      delivery: none
+      steps:
+      - id: plan
+        role: autopilot-planner
+        agents:
+        - gpt-codex-6
+        config:
+          gpt-codex-6:
+            reasoning_effort: medium
+        output:
+          params:
+            max_tasks: 10
+      - id: feedback
+        role: autopilot-planner
+        agents:
+        - google-agy-3.8
+        output:
+          params:
+            max_tasks: 1
+        wait_for:
+          tasks_from:
+          - plan
+          until: terminal
+          timeout_hours: 24
+      skill_sets:
+      - renovate
+      kind: chore
+      priority: low
+      max_rounds: 3
+      goal: Test and merge the Renovate dependency PRs that automerge does not take, and pin what cannot be upgraded yet
+      details: |
+        Context: the central Renovate job in spigell/my-renovate (cron 0 */3 * * * UTC) opens dependency PRs as spigell-renovate[bot] on renovate/chore/* branches. default.json in this checkout is the shared config: minor and patch updates automerge once checks pass, majors get their own PR (renovate/chore/major-*) and never automerge, and a packageRule with allowedVersions or enabled: false is a pin. An update task works on the Renovate PR branch itself: the worker pushes the coder's commits there and merges the PR once the reviewer approves and every check is green. Once someone else pushes to a Renovate branch, Renovate stops rebasing it. The plan step outputs update tasks; the feedback step reads their results and may output one rule task. Neither step changes a repository or a PR.
+
+        Plan:
+        1. With github-mcp search_pull_requests, list OPEN PRs in user:spigell authored by spigell-renovate[bot] whose head branch starts with renovate/chore/. Skip renovate/configure, drafts, and PRs whose head repository is a fork. For each PR read its body and check runs (pull_request_read get and get_check_runs).
+        2. Minor or patch PRs: output an update task (key "<repo>#<n>:update") only when a check failed or was cancelled. Skip it while checks are pending or once all passed: automerge takes it.
+        3. Majors (head branch renovate/chore/major-*): group the PRs by package and target major across repositories, as "<package>@<major>" (for example "eslint@10"; a Renovate group PR is grouped by its group name). Take at most 2 groups per run, the groups with the most repositories first; name the rest in the summary as deferred. For each group:
+           - Read the release notes and breaking changes once, from the PR bodies (Renovate puts the release notes there), and write them into every task of the group as <breaking changes>.
+           - Pick the pilot: the repository whose PR changes the fewest files, ties by repository name. Output its update task (key "major:<package>@<major>:<repo>").
+           - Output the update task of every other repository in the group with after ["major:<package>@<major>:<pilot repo>"], so they run only once the pilot merged, with what the pilot learned. While the pilot PR is still open, output the pilot entry again in every run: the runner skips it as a duplicate and keeps `after` on it.
+           - Fit a whole group in this run's 10 tasks, or defer it.
+        Always output a task when the rules say so: the runner skips a key that already has an active task or one created in the last 24 hours.
+
+        update task:
+          repo: spigell/<repo>
+          branch: <the PR head branch>
+          pull_request_number: <n>
+          steps:
+            - role: coder
+              agents: [gpt-codex-6]
+              config: { gpt-codex-6: { reasoning_effort: medium } }
+            - role: reviewer
+              agents: [claude-opus-5-5-main, gpt-codex-6]
+          skill_sets: [renovate]
+          kind: chore
+          workspace: isolated
+          delivery: pr
+          priority: low
+          goal: Make the Renovate PR #<n> in spigell/<repo> (<package> <from> to <to>) pass its build and tests so it can merge
+          details: >-
+            Context: Renovate PR #<n> updates <package> from <from> to <to> (<major or minor/patch>). <for majors: the breaking changes from the release notes: <breaking changes>. For a non-pilot repository: this upgrade already merged in the pilot spigell/<pilot repo>, see its merged PR for what it needed.> <for a red minor/patch PR: these checks fail: <each failing check name with its job URL>.>
+            Scope: only what this update needs: the lockfile, the code and config the new version breaks, and the tests for them. Keep the version Renovate chose; do not change renovate.json or pin the package.
+            Validate in the foreground with the same commands the repository's CI runs on pull requests (read .github/workflows and the package scripts or Makefile): install, build, lint and tests. Every one must pass.
+            Report: what the upgrade broke and how you fixed it, or that nothing needed to change, and every command run with pass/fail.
+            Stop if: the upgrade needs a redesign, an upstream fix, or a change outside this repository; report the reason in one sentence and the evidence, so the feedback step can pin it.
+
+        Feedback:
+        The prompt gives you every task the plan created, with its status, PR link and final result. In summary, report for each: merged, or the reason it did not merge (failed, archived with the dependency that stopped it, blocked after max_rounds, or still running); for each major group how many repositories merged; and what the next run will pick up.
+        Then decide whether to pin. Output the rule task only for a package whose update failed for a reason that will not go away soon: a breaking change that needs a redesign, or an upstream bug or blocker with an issue or PR link. A flaky check, a timeout or a reviewer nit is not a reason to pin. At most one rule per run: name the others in the summary as pin candidates. Check default.json in this checkout first and skip a package that already has a rule.
+
+        rule task:
+          repo: spigell/my-renovate
+          branch: reforge/chore/renovate-pin-<package slug>
+          steps:
+            - role: coder
+              agents: [gpt-codex-6]
+              config: { gpt-codex-6: { reasoning_effort: medium } }
+            - role: reviewer
+              agents: [claude-opus-5-5-main, gpt-codex-6]
+          skill_sets: [renovate]
+          kind: chore
+          workspace: isolated
+          delivery: pr
+          priority: low
+          goal: Pin <package> below <major> in the central Renovate config until <the reason> is resolved
+          details: >-
+            Context: the renovate-deps autopilot could not upgrade <package> to <to> in <repositories>: <the reason>, see <the failed task's PR link> and <the upstream issue or PR link, if any>.
+            Scope: add one packageRule to default.json after the existing ones: "matchPackageNames": ["<package>"] (or matchDepNames when the PR names a dependency, not a package), "allowedVersions": "<<major>", and "description": "<the reason>; source: <the upstream link, else the PR link>; review after: <today plus 30 days, YYYY-MM-DD>". Change nothing else.
+            Validate in the foreground with `yarn dlx --package renovate renovate-config-validator --strict default.json`.
+            Report: the rule added and the validator output.
+            Stop if: default.json already has a rule for <package>; report it.
+
+        Stop if: github-mcp cannot search or read pull requests; output no tasks and report the error.

@@ -1,0 +1,71 @@
+# The renovate-pins autopilot: once a week, reviews one due pin or disable rule
+# in the central Renovate config and lifts it, raises it, or renews its reason.
+name: renovate-pins
+cron: 0 7 * * 1
+timezone: UTC
+template:
+  members:
+  - key: autopilot
+    template:
+      repo: spigell/my-renovate
+      branch: main
+      workspace: isolated
+      delivery: none
+      steps:
+      - id: plan
+        role: autopilot-planner
+        agents:
+        - google-agy-3.8
+        output:
+          params:
+            max_tasks: 1
+      - id: feedback
+        role: autopilot-feedback
+        agents:
+        - google-agy-3.8
+        wait_for:
+          tasks_from:
+          - plan
+          until: terminal
+          timeout_hours: 24
+      skill_sets:
+      - renovate
+      kind: chore
+      priority: low
+      max_rounds: 3
+      goal: Review one due pin in the central Renovate config and lift it, raise it, or renew its reason
+      details: |
+        Context: default.json in this checkout is the central Renovate config for every spigell repository. A pin is a packageRule with allowedVersions (a version cap) or enabled: false. Each pin's description should read "<reason>; source: <URL>; review after: YYYY-MM-DD". Pins go stale: the blocker gets fixed upstream, or the churn that made us pin settles. Lifting a cap is how the new version gets tested: Renovate opens the PRs and the renovate-deps autopilot upgrades, tests and merges them, or pins again with the reason.
+
+        Plan:
+        1. List every pin in default.json with its index, packages, cap and description.
+        2. A pin is due when its review after date is today or earlier, or when its description lacks that format.
+        3. Output the pin-review task for one due pin: the earliest review after date first, then pins without one in file order. Name the other due pins in the summary. If none is due, output no tasks and say so.
+        Always output the task when the rules say so: the runner skips a key that already has an active task or one created in the last 24 hours.
+
+        pin-review task (key "pin:<package slug>"):
+          repo: spigell/my-renovate
+          branch: reforge/chore/renovate-pin-review-<package slug>
+          steps:
+            - role: renovate-pin-reviewer
+              agents: [gpt-codex-6]
+              config: { gpt-codex-6: { reasoning_effort: medium } }
+            - role: reviewer
+              agents: [claude-opus-5-5-main, gpt-codex-6]
+          skill_sets: [renovate]
+          kind: chore
+          workspace: isolated
+          delivery: pr
+          priority: low
+          goal: Review the default.json pin on <packages> (<cap>) and lift it, raise it, or renew its reason
+          details: >-
+            Context: packageRules[<index>] in default.json pins <packages> with <cap>. Its description: "<description, or 'none'>".
+            Decide from evidence: is the blocker issue or PR resolved, what upstream released since the pin and with which breaking changes, and is the churn that made us pin still there. Then lift the rule (remove it, or only the cap), raise the cap, or keep it with an updated reason, source and a review after date 30 to 90 days out.
+            A pin without a recorded reason: look for it in this repository's git log and blame for that rule, write the reason you find with its source, or lift it when none holds.
+            Report: the rule before and after, the decision with evidence links, and the validator output.
+            Stop if: the rule is gone or already changed on main; report it.
+
+        Feedback:
+        Report the pin-review task's status, its PR link, the decision (lifted, raised, renewed) with the evidence it gave, and the pins still due for next week.
+
+        Stop if: default.json cannot be read; output no tasks and report the error.

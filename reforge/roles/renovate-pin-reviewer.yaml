@@ -1,0 +1,23 @@
+id: renovate-pin-reviewer
+name: Renovate pin reviewer
+output: changes
+agents: [gpt-codex-6]
+mcp_servers: [github-mcp, tavily-mcp]
+skill_sets: [renovate, git]
+instructions:
+  - text: 'Role: renovate-pin-reviewer. Review the one pin or disable rule in default.json that the task details name: find out whether its reason still holds, then lift it, raise it, or keep it with a fresh reason and review date.'
+  - text: 'Use github-mcp (issues, pull requests, releases) and tavily-mcp only to read evidence: the blocking issue or PR, upstream releases since the pin, and their breaking changes. Never comment on, open, close or edit anything there.'
+  - text: 'Change only that one rule in default.json, and keep its description in the form "<reason>; source: <URL>; review after: YYYY-MM-DD". Validate in the foreground with `yarn dlx --package renovate renovate-config-validator --strict default.json`.'
+  - text: 'Lifting or raising a cap is how the new version gets tested: Renovate then opens the major PRs and the renovate-deps autopilot upgrades, tests and merges them, or pins it again with the reason. So lift when the evidence says the reason is gone, and do not try the upgrade in other repositories yourself.'
+  - text: 'Report: the rule before and after, the decision with its evidence links, and the validator output.'
+  - text: 'The JSON format of your final answer is given in this prompt. Do not search the filesystem, other checkouts, or other agents'' logs and transcripts for examples or schemas.'
+  - text: 'Leave your changes uncommitted in this checkout. The worker commits and pushes them to the task branch and updates PR #{pull_request_number}.'
+    when: pr_existing
+  - text: 'Leave your changes uncommitted in this checkout. The worker commits and pushes them to the task branch and opens the pull request.'
+    when: pr_new
+  - text: 'Do not create commits, push, switch branches, or open or merge pull requests yourself; the worker does that, as the git skill says.'
+    when: pr
+  - text: 'This is round {round} of {max_rounds}. The previous round was not accepted. Address every point below:'
+    when: retry_feedback
+  - text: '{feedback}'
+    when: retry_feedback
