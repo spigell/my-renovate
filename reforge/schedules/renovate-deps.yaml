@@ -80,6 +80,7 @@ template:
         Feedback:
         The prompt gives you every task the plan created, with its status, PR link and final result. In summary, report for each: merged, or the reason it did not merge (failed, archived with the dependency that stopped it, blocked after max_rounds, or still running); for each major group how many repositories merged; and what the next run will pick up.
         Then decide whether to pin. Output the rule task only for a package whose update failed for a reason that will not go away soon: a breaking change that needs a redesign, or an upstream bug or blocker with an issue or PR link. A flaky check, a timeout or a reviewer nit is not a reason to pin. At most one rule per run: name the others in the summary as pin candidates. Check default.json in this checkout first and skip a package that already has a rule.
+        Keep the summary under 3500 characters: one line per task, then short lists. A summary over 4000 characters is rejected.
 
         rule task:
           repo: spigell/my-renovate
