@@ -43,13 +43,16 @@
       "allowedVersions": "<25"
     },
     {
-      "description": "Keep the Pulumi CLI on the manually approved version",
+      "description": "Keep the Pulumi CLI, workbench image and core SDKs (Go, npm, Python) on the manually approved version 3.267.0, already merged in pulumi-talos-cluster; source: https://github.com/spigell/pulumi-talos-cluster/pull/63; review after: 2026-11-02",
       "matchDepNames": [
         "pulumi/pulumi",
         "@pulumi/pulumi",
-        "ghcr.io/spigell/pulumi-workbench"
+        "ghcr.io/spigell/pulumi-workbench",
+        "github.com/pulumi/pulumi/sdk/v3",
+        "github.com/pulumi/pulumi/pkg/v3",
+        "pulumi"
       ],
-      "allowedVersions": "<=3.252.0"
+      "allowedVersions": "<=3.267.0"
     }
   ]
 }
