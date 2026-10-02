@@ -34,6 +34,12 @@ template:
           timeout_hours: 24
       skill_sets:
       - renovate
+      # A fresh clone of my-github main, so src/repos-data.ts is a local read:
+      # through github-mcp alone, a run that missed get_file_contents output
+      # no tasks. Isolated with delivery none takes no lock and pushes nothing.
+      repo: spigell/my-github
+      branch: main
+      workspace: isolated
       kind: chore
       delivery: none
       priority: low
@@ -44,7 +50,7 @@ template:
 
         Planner:
         1. Configure Renovate PRs. With github-mcp search_pull_requests, list OPEN PRs in user:spigell authored by spigell-renovate[bot] with head branch renovate/configure. Take at most 10, oldest first; name the rest in the summary as deferred. For each PR, check these gates and stop at the first that fails (name it in the summary as skipped):
-           0. Access: in spigell/my-github src/repos-data.ts (get_file_contents), the repository's entry has renovateEnabled: true and includeBotContributors: true.
+           0. Access: in src/repos-data.ts of this checkout (spigell/my-github main), the repository's entry has renovateEnabled: true and includeBotContributors: true.
            a. Files (pull_request_read get_files): renovate.json is the only changed file and it is added.
            b. Content (get_diff): renovate.json is a JSON object with only $schema and, optionally, extends whose entries all start with github>spigell/my-renovate.
            c. State (get): open, not a draft, targets the default branch, mergeable_state clean or unstable.
@@ -52,8 +58,8 @@ template:
            - Any failed, cancelled or pending: output the ci-fix task (key "<repo>#<n>:ci-fix") and the tailor task (key "<repo>#<n>:tailor", after ["<repo>#<n>:ci-fix"]).
            - All passed: output the tailor task alone.
            From the PR's 'What to Expect' section, put in the summary the number of PRs Renovate will create and the entries on renovate/chore/major-* branches.
-        2. Onboarding. Only if fewer than 3 Configure Renovate PRs are open: in src/repos-data.ts, pick the first repository, in file order, that has renovateEnabled unset or false, has includeBotContributors: true, is not archived, is not my-renovate, and has no comment opting out of Renovate. Output the onboarding task (key "onboarding:<repo>") and the secret-sync task (key "secret-sync:<repo>", after ["onboarding:<repo>"]). One repository per run. If none remain, say in the summary 'all repositories are onboarded'.
-        3. Secret not applied. For a repository with renovateEnabled: true, no renovate.json on its default branch, no open Configure Renovate PR, and a merged onboarding PR in spigell/my-github older than 4 hours: output the secret-sync task alone (key "secret-sync:<repo>").
+        2. Onboarding. Only if fewer than 3 Configure Renovate PRs are open: in src/repos-data.ts of this checkout, pick the first repository, in file order, that has renovateEnabled unset or false, has includeBotContributors: true, is not archived, is not my-renovate, and has no comment opting out of Renovate. Output the onboarding task (key "onboarding:<repo>") and the secret-sync task (key "secret-sync:<repo>", after ["onboarding:<repo>"]). One repository per run. If none remain, say in the summary 'all repositories are onboarded'.
+        3. Secret not applied. For a repository with renovateEnabled: true in src/repos-data.ts of this checkout, no renovate.json on its default branch (github-mcp get_file_contents), no open Configure Renovate PR, and a merged onboarding PR in spigell/my-github older than 4 hours: output the secret-sync task alone (key "secret-sync:<repo>").
         Always output a task when the rules say so: the runner skips a key that already has an active task or one created in the last 24 hours, and resolves `after` to it.
 
         onboarding task:
