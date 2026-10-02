@@ -6,10 +6,9 @@ review the pins in `default.json`, plus the Renovate-specific roles they use.
 This directory is the source of truth; the reforge task registry holds the live
 copies.
 
-- `schedules/renovate-hourly.yaml`: the onboarding autopilot, every 6 hours
-  at minute 40 (the name predates that). Its planner outputs onboarding,
-  secret-sync, CI-fix and tailor tasks; its feedback step reports what they
-  moved forward.
+- `schedules/renovate-onboarding.yaml`: the onboarding autopilot, every 6
+  hours at minute 40. Its planner outputs onboarding, secret-sync, CI-fix and
+  tailor tasks; its feedback step reports what they moved forward.
 - `schedules/renovate-deps.yaml`: every 3 hours, 20 minutes after the Renovate
   job. Its planner outputs update tasks for majors, grouped by package and
   major across repositories (a pilot repository first, the rest after it

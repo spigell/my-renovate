@@ -1,7 +1,8 @@
-# The renovate-hourly autopilot: onboards spigell repositories to the central
-# Renovate job and moves each 'Configure Renovate' PR to merge. Exported from
-# the live reforge registry on 2026-10-01.
-name: renovate-hourly
+# The renovate-onboarding autopilot (renovate-hourly until 2026-10-02):
+# onboards spigell repositories to the central Renovate job and moves each
+# 'Configure Renovate' PR to merge. Exported from the live reforge registry on
+# 2026-10-01.
+name: renovate-onboarding
 cron: 40 */6 * * *
 timezone: UTC
 template:
