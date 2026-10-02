@@ -2,7 +2,7 @@
 # Renovate job and moves each 'Configure Renovate' PR to merge. Exported from
 # the live reforge registry on 2026-10-01.
 name: renovate-hourly
-cron: 0 * * * *
+cron: 40 */6 * * *
 timezone: UTC
 template:
   members:
