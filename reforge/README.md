@@ -8,7 +8,8 @@ copies.
 
 - `schedules/renovate-onboarding.yaml`: the onboarding autopilot, every 6
   hours at minute 40. Its planner outputs onboarding, secret-sync, CI-fix and
-  tailor tasks; its feedback step reports what they moved forward.
+  tailor tasks; its feedback step reports what they moved forward and may
+  output one process task.
 - `schedules/renovate-deps.yaml`: every 3 hours, 20 minutes after the Renovate
   job. Its planner outputs update tasks for majors, grouped by package and
   major across repositories (a pilot repository first, the rest after it
@@ -17,7 +18,7 @@ copies.
   task that pins a package which cannot be upgraded yet.
 - `schedules/renovate-pins.yaml`: weekly. Reviews one due pin and lifts it,
   raises it, or renews its reason. Lifting a cap hands the new version to
-  `renovate-deps` to test.
+  `renovate-deps` to test. Its feedback step may output one process task.
 - `roles/renovate-onboarder.yaml`: sets `renovateEnabled` for one repository in
   spigell/my-github.
 - `roles/renovate-applier.yaml`: applies the my-github stack when the only

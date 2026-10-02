@@ -20,9 +20,12 @@ template:
           params:
             max_tasks: 1
       - id: feedback
-        role: autopilot-feedback
+        role: autopilot-planner
         agents:
         - google-agy-3.8
+        output:
+          params:
+            max_tasks: 1
         wait_for:
           tasks_from:
           - plan
@@ -65,7 +68,31 @@ template:
             Report: the rule before and after, the decision with evidence links, and the validator output.
             Stop if: the rule is gone or already changed on main; report it.
 
+        process task:
+          repo: spigell/my-renovate
+          branch: spigell/chore/<short-slug>
+          steps:
+            - role: coder
+              agents: [gpt-codex-6]
+              config: { gpt-codex-6: { reasoning_effort: medium } }
+            - role: reviewer
+              agents: [claude-opus-5-5-main, gpt-codex-6]
+          skill_sets: [renovate]
+          kind: chore
+          workspace: isolated
+          delivery: pr
+          priority: low
+          goal: <one-line fix for the pin review process problem>
+          details: >-
+            Context: <the problem this run exposed, with a reviewer finding, failed task, check, PR, or file:line as evidence>.
+            Scope: <the smallest fix for one concern only in the shared config, presets, workflow, README, or reforge/ specs of spigell/my-renovate>. Nothing deploys; no Pulumi applies and no secrets are changed or requested.
+            Done when: the fix is verified; if config changed, `yarn dlx --package renovate renovate-config-validator --strict default.json` passes.
+            Report: what changed, why, and checks run; if reforge/ changed, say the operator must upsert it.
+            Stop if: the fix needs a secret (name the missing secret, never ask for its value) or a design decision; report the blocker.
+
         Feedback:
         Report the pin-review task's status, its PR link, the decision (lifted, raised, renewed) with the evidence it gave, and the pins still due for next week.
+        Then output up to one process task (the process task above, key "renovate-pins-process:<short-slug>") for a problem this run's results show: a reviewer finding nobody fixed, a failed or blocked task, a check that could not run, or a step that redid another step's work. Skip problems already covered by a planner task of this run; name the rest in the summary.
+        Keep the summary under 3500 characters: one line per task, then short lists. A summary over 4000 characters is rejected.
 
         Stop if: default.json cannot be read; output no tasks and report the error.
