@@ -53,6 +53,11 @@
         "pulumi"
       ],
       "allowedVersions": "<=3.267.0"
+    },
+    {
+      "description": "ts-node incompatibility with TypeScript 7; source: https://github.com/spigell/my-cloud-resume/pull/58; review after: 2026-11-02",
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<7"
     }
   ]
 }
