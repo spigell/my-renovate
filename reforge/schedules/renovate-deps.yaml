@@ -25,8 +25,10 @@ template:
             max_tasks: 10
       - id: feedback
         role: autopilot-planner
+        # The feedback step decides pins in the shared default.json, so it runs
+        # on the Claude main login rather than agy.
         agents:
-        - google-agy-3.8
+        - claude-opus-5-5-main
         output:
           params:
             max_tasks: 1
@@ -79,7 +81,7 @@ template:
 
         Feedback:
         The prompt gives you every task the plan created, with its status, PR link and final result. In summary, report for each: merged, or the reason it did not merge (failed, archived with the dependency that stopped it, blocked after max_rounds, or still running); for each major group how many repositories merged; and what the next run will pick up.
-        Then decide whether to pin. Output the rule task only for a package whose update failed for a reason that will not go away soon: a breaking change that needs a redesign, or an upstream bug or blocker with an issue or PR link. A flaky check, a timeout or a reviewer nit is not a reason to pin. At most one rule per run: name the others in the summary as pin candidates. Check default.json in this checkout first and skip a package that already has a rule.
+        Then decide whether to pin. Output the rule task only for a package whose update failed for a reason that will not go away soon: a breaking change that needs a redesign, or an upstream bug or blocker with an issue or PR link. A flaky check, a timeout or a reviewer nit is not a reason to pin. At most one rule per run: name the others in the summary as pin candidates. A pin covers only the repositories whose update failed (matchRepositories): default.json is shared by every repository, and a repository where the upgrade already merged must never be held back. Leave matchRepositories out only when the blocker applies to every repository that uses the package (an upstream bug, or a version the operator approved for all), and say why in the summary. Check default.json in this checkout first and skip a package whose existing rule already covers the failed repositories.
         Keep the summary under 3500 characters: one line per task, then short lists. A summary over 4000 characters is rejected.
 
         rule task:
@@ -96,12 +98,12 @@ template:
           workspace: isolated
           delivery: pr
           priority: low
-          goal: Pin <package> below <major> in the central Renovate config until <the reason> is resolved
+          goal: Pin <package> below <major> for <repositories> until <the reason> is resolved
           details: >-
-            Context: the renovate-deps autopilot could not upgrade <package> to <to> in <repositories>: <the reason>, see <the failed task's PR link> and <the upstream issue or PR link, if any>.
-            Scope: add one packageRule to default.json after the existing ones: "matchPackageNames": ["<package>"] (or matchDepNames when the PR names a dependency, not a package), "allowedVersions": "<<major>", and "description": "<the reason>; source: <the upstream link, else the PR link>; review after: <today plus 30 days, YYYY-MM-DD>". Change nothing else.
-            Validate in the foreground with `yarn dlx --package renovate renovate-config-validator --strict default.json`.
-            Report: the rule added and the validator output.
-            Stop if: default.json already has a rule for <package>; report it.
+            Context: the renovate-deps autopilot could not upgrade <package> to <to> in <repositories>: <the reason>, see <the failed task's PR link> and <the upstream issue or PR link, if any>. default.json is shared by every repository, so the pin is scoped to the repositories that failed.
+            Scope: add one packageRule to default.json after the existing ones: "matchRepositories": ["spigell/<repo>", ...] (the failed repositories; leave it out only when the feedback step said the blocker applies to every repository), "matchPackageNames": ["<package>"] (or matchDepNames when the PR names a dependency, not a package), "allowedVersions": "<<major>", and "description": "<the reason>; source: <the upstream link, else the PR link>; review after: <today plus 30 days, YYYY-MM-DD>". If a rule for <package> with the same allowedVersions already exists, add the repositories to its matchRepositories instead. Change nothing else.
+            Validate in the foreground with `npm exec --yes --package renovate -- renovate-config-validator --strict default.json`.
+            Report: the rule added or extended, and the validator output.
+            Stop if: default.json already has a rule for <package> that covers these repositories, or one with different allowedVersions; report it.
 
         Stop if: github-mcp cannot search or read pull requests; output no tasks and report the error.
