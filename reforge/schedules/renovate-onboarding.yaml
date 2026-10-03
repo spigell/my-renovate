@@ -140,7 +140,7 @@ template:
           details: >-
             Context: PR #<n> (branch renovate/configure, opened by spigell-renovate[bot]) onboards this repository to the central Renovate job, and its renovate.json holds only $schema. The central config is extended per repository, never globally.
             Scope: change only renovate.json on this branch. Write it as exactly {"$schema": "https://docs.renovatebot.com/renovate-schema.json", "extends": [...]} where extends is, in this order: "github>spigell/my-renovate" always; "github>spigell/my-renovate//presets/workflow-managers" only if a file under .github/workflows or .github/actions has a line containing "# renovate: datasource="; "github>spigell/my-renovate//presets/dockerfile-managers" only if a file named Dockerfile has an ARG line containing "# renovate: datasource=". No other keys.
-            Validate in the foreground with `yarn dlx --package renovate renovate-config-validator --strict renovate.json`.
+            Validate in the foreground with `npm exec --yes --package renovate -- renovate-config-validator --strict renovate.json`.
             Done when: renovate.json has exactly that content and the validator passes.
             Report: the extends list with file:line evidence for each preset added, and the validator output.
             Stop if: renovate.json already has keys other than $schema and extends, or the branch changes files other than renovate.json; report it.
