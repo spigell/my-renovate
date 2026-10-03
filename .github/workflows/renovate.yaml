@@ -1,9 +1,8 @@
 name: Renovate
 
 on:
-  # The 3-hourly schedule (cron "0 */3 * * *") is paused to save Actions minutes
-  # and agent usage, together with the reforge renovate-* schedules. Run it by
-  # hand from the Actions tab, or restore the schedule block to resume.
+  schedule:
+    - cron: "0 */3 * * *"
   workflow_dispatch:
     inputs:
       repositories:
