@@ -16,9 +16,9 @@ template:
       - id: plan
         role: autopilot-planner
         agents:
-        - gpt-codex-6
+        - codex
         config:
-          gpt-codex-6:
+          codex:
             reasoning_effort: medium
         output:
           params:
@@ -28,7 +28,7 @@ template:
         # The feedback step decides pins in the shared default.json, so it runs
         # on the Claude main login rather than agy.
         agents:
-        - claude-opus-5-5-main
+        - claude-main
         output:
           params:
             max_tasks: 1
@@ -62,10 +62,10 @@ template:
           pull_request_number: <n>
           steps:
             - role: coder
-              agents: [gpt-codex-6]
-              config: { gpt-codex-6: { reasoning_effort: medium } }
+              agents: [codex]
+              config: { codex: { reasoning_effort: medium } }
             - role: reviewer
-              agents: [claude-opus-5-5-main, gpt-codex-6]
+              agents: [claude-main, codex]
           skill_sets: [renovate]
           kind: chore
           workspace: isolated
@@ -89,10 +89,10 @@ template:
           branch: reforge/chore/renovate-pin-<package slug>
           steps:
             - role: coder
-              agents: [gpt-codex-6]
-              config: { gpt-codex-6: { reasoning_effort: medium } }
+              agents: [codex]
+              config: { codex: { reasoning_effort: medium } }
             - role: reviewer
-              agents: [claude-opus-5-5-main, gpt-codex-6]
+              agents: [claude-main, codex]
           skill_sets: [renovate]
           kind: chore
           workspace: isolated

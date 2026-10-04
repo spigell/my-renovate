@@ -15,14 +15,14 @@ template:
       - id: plan
         role: autopilot-planner
         agents:
-        - google-agy-3.8
+        - agy
         output:
           params:
             max_tasks: 1
       - id: feedback
         role: autopilot-planner
         agents:
-        - google-agy-3.8
+        - agy
         output:
           params:
             max_tasks: 1
@@ -51,10 +51,10 @@ template:
           branch: reforge/chore/renovate-pin-review-<package slug>
           steps:
             - role: renovate-pin-reviewer
-              agents: [gpt-codex-6]
-              config: { gpt-codex-6: { reasoning_effort: medium } }
+              agents: [codex]
+              config: { codex: { reasoning_effort: medium } }
             - role: reviewer
-              agents: [claude-opus-5-5-main, gpt-codex-6]
+              agents: [claude-main, codex]
           skill_sets: [renovate]
           kind: chore
           workspace: isolated
@@ -73,10 +73,10 @@ template:
           branch: spigell/chore/<short-slug>
           steps:
             - role: coder
-              agents: [gpt-codex-6]
-              config: { gpt-codex-6: { reasoning_effort: medium } }
+              agents: [codex]
+              config: { codex: { reasoning_effort: medium } }
             - role: reviewer
-              agents: [claude-opus-5-5-main, gpt-codex-6]
+              agents: [claude-main, codex]
           skill_sets: [renovate]
           kind: chore
           workspace: isolated

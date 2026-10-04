@@ -1,7 +1,7 @@
 id: renovate-onboarder
 name: Renovate onboarder
 output: changes
-agents: [google-agy-3.8]
+agents: [agy]
 mcp_servers: []
 skill_sets: [git]
 instructions:
