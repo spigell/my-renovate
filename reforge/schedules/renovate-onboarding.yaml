@@ -1,4 +1,4 @@
-# The renovate-onboarding autopilot (renovate-hourly until 2026-10-02):
+# The renovate-onboarding schedule (renovate-hourly until 2026-10-02):
 # onboards spigell repositories to the central Renovate job and moves each
 # 'Configure Renovate' PR to merge. Exported from the live reforge registry on
 # 2026-10-01.
@@ -10,8 +10,8 @@ template:
   - key: autopilot
     template:
       steps:
-      - id: plan
-        role: autopilot-planner
+      - id: brief
+        role: briefer
         agents:
         - codex
         config:
@@ -20,8 +20,8 @@ template:
         output:
           params:
             max_tasks: 6
-      - id: feedback
-        role: autopilot-planner
+      - id: debrief
+        role: briefer
         agents:
         - agy
         output:
@@ -29,7 +29,7 @@ template:
             max_tasks: 1
         wait_for:
           tasks_from:
-          - plan
+          - brief
           until: terminal
           timeout_hours: 24
       skill_sets:
@@ -46,9 +46,9 @@ template:
       max_rounds: 3
       goal: Onboard spigell repositories to the central Renovate job and move each 'Configure Renovate' PR to merge
       details: |
-        Context: the central Renovate job in spigell/my-renovate (cron 0 */3 * * * UTC) scans the repositories in its RENOVATE_REPOSITORIES Actions secret. spigell/my-github builds that list from the renovateEnabled flag in src/repos-data.ts, but the secret only changes when the my-github Pulumi stack is applied. For each newly listed repository, Renovate opens a 'Configure Renovate' PR on branch renovate/configure and opens no dependency PRs there until it merges. The planner outputs worker tasks; the runner creates them, orders them by `after`, and runs the feedback step once they all finish. Feedback may output one process task. Neither step changes a repository or a PR.
+        Context: the central Renovate job in spigell/my-renovate (cron 0 */3 * * * UTC) scans the repositories in its RENOVATE_REPOSITORIES Actions secret. spigell/my-github builds that list from the renovateEnabled flag in src/repos-data.ts, but the secret only changes when the my-github Pulumi stack is applied. For each newly listed repository, Renovate opens a 'Configure Renovate' PR on branch renovate/configure and opens no dependency PRs there until it merges. The briefer outputs worker tasks; the runner creates them, orders them by `after`, and runs the debrief step once they all finish. The debrief may output one process task. Neither step changes a repository or a PR.
 
-        Planner:
+        Briefer:
         1. Configure Renovate PRs. With github-mcp search_pull_requests, list OPEN PRs in user:spigell authored by spigell-renovate[bot] with head branch renovate/configure. Take at most 10, oldest first; name the rest in the summary as deferred. For each PR, check these gates and stop at the first that fails (name it in the summary as skipped):
            0. Access: in src/repos-data.ts of this checkout (spigell/my-github main), the repository's entry has renovateEnabled: true and includeBotContributors: true.
            a. Files (pull_request_read get_files): renovate.json is the only changed file and it is added.
@@ -168,9 +168,9 @@ template:
             Report: what changed, why, and checks run; if reforge/ changed, say the operator must upsert it.
             Stop if: the fix needs a secret (name the missing secret, never ask for its value) or a design decision; report the blocker.
 
-        Feedback:
-        For each task the planner created, report its final status, its PR link, and what it moved forward: the repository onboarded, the secret applied, the onboarding PR green or merged (check with pull_request_read). Name archived tasks with the dependency that stopped them, list every needs-operator item with the reason, and say what the next run will pick up.
-        Then output up to one process task (the process task above, key "renovate-onboarding-process:<short-slug>") for a problem this run's results show: a reviewer finding nobody fixed, a failed or blocked task, a check that could not run, or a step that redid another step's work. Skip problems already covered by a planner task of this run; name the rest in the summary.
+        Debrief:
+        For each task the briefer created, report its final status, its PR link, and what it moved forward: the repository onboarded, the secret applied, the onboarding PR green or merged (check with pull_request_read). Name archived tasks with the dependency that stopped them, list every needs-operator item with the reason, and say what the next run will pick up.
+        Then output up to one process task (the process task above, key "renovate-onboarding-process:<short-slug>") for a problem this run's results show: a reviewer finding nobody fixed, a failed or blocked task, a check that could not run, or a step that redid another step's work. Skip problems already covered by a briefer task of this run; name the rest in the summary.
         Keep the summary under 3500 characters: one line per task, then short lists. A summary over 4000 characters is rejected.
 
         Stop if: github-mcp cannot search or read pull requests; output no tasks and report the error.

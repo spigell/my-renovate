@@ -1,4 +1,4 @@
-# The renovate-pins autopilot: once a week, reviews one due pin or disable rule
+# The renovate-pins schedule: once a week, reviews one due pin or disable rule
 # in the central Renovate config and lifts it, raises it, or renews its reason.
 name: renovate-pins
 cron: 0 7 * * 1
@@ -12,15 +12,15 @@ template:
       workspace: isolated
       delivery: none
       steps:
-      - id: plan
-        role: autopilot-planner
+      - id: brief
+        role: briefer
         agents:
         - agy
         output:
           params:
             max_tasks: 1
-      - id: feedback
-        role: autopilot-planner
+      - id: debrief
+        role: briefer
         agents:
         - agy
         output:
@@ -28,7 +28,7 @@ template:
             max_tasks: 1
         wait_for:
           tasks_from:
-          - plan
+          - brief
           until: terminal
           timeout_hours: 24
       skill_sets:
@@ -38,9 +38,9 @@ template:
       max_rounds: 3
       goal: Review one due pin in the central Renovate config and lift it, raise it, or renew its reason
       details: |
-        Context: default.json in this checkout is the central Renovate config for every spigell repository. A pin is a packageRule with allowedVersions (a version cap) or enabled: false. Each pin's description should read "<reason>; source: <URL>; review after: YYYY-MM-DD". Pins go stale: the blocker gets fixed upstream, or the churn that made us pin settles. Lifting a cap is how the new version gets tested: Renovate opens the PRs and the renovate-deps autopilot upgrades, tests and merges them, or pins again with the reason.
+        Context: default.json in this checkout is the central Renovate config for every spigell repository. A pin is a packageRule with allowedVersions (a version cap) or enabled: false. Each pin's description should read "<reason>; source: <URL>; review after: YYYY-MM-DD". Pins go stale: the blocker gets fixed upstream, or the churn that made us pin settles. Lifting a cap is how the new version gets tested: Renovate opens the PRs and the renovate-deps schedule upgrades, tests and merges them, or pins again with the reason.
 
-        Plan:
+        Brief:
         1. List every pin in default.json with its index, packages, cap and description.
         2. A pin is due when its review after date is today or earlier, or when its description lacks that format.
         3. Output the pin-review task for one due pin: the earliest review after date first, then pins without one in file order. Name the other due pins in the summary. If none is due, output no tasks and say so.
@@ -90,9 +90,9 @@ template:
             Report: what changed, why, and checks run; if reforge/ changed, say the operator must upsert it.
             Stop if: the fix needs a secret (name the missing secret, never ask for its value) or a design decision; report the blocker.
 
-        Feedback:
+        Debrief:
         Report the pin-review task's status, its PR link, the decision (lifted, raised, renewed) with the evidence it gave, and the pins still due for next week.
-        Then output up to one process task (the process task above, key "renovate-pins-process:<short-slug>") for a problem this run's results show: a reviewer finding nobody fixed, a failed or blocked task, a check that could not run, or a step that redid another step's work. Skip problems already covered by a planner task of this run; name the rest in the summary.
+        Then output up to one process task (the process task above, key "renovate-pins-process:<short-slug>") for a problem this run's results show: a reviewer finding nobody fixed, a failed or blocked task, a check that could not run, or a step that redid another step's work. Skip problems already covered by a briefer task of this run; name the rest in the summary.
         Keep the summary under 3500 characters: one line per task, then short lists. A summary over 4000 characters is rejected.
 
         Stop if: default.json cannot be read; output no tasks and report the error.

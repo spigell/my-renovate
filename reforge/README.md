@@ -1,24 +1,27 @@
 # Reforge definitions for Renovate
 
-The reforge autopilots that onboard spigell repositories to this central
+The reforge schedules that onboard spigell repositories to this central
 Renovate job, test and merge the dependency PRs automerge does not take, and
 review the pins in `default.json`, plus the Renovate-specific roles they use.
 This directory is the source of truth; the reforge task registry holds the live
 copies.
 
-- `schedules/renovate-onboarding.yaml`: the onboarding autopilot, every 6
-  hours at minute 40. Its planner outputs onboarding, secret-sync, CI-fix and
-  tailor tasks; its feedback step reports what they moved forward and may
-  output one process task.
+Each schedule runs two steps: `brief` (role `briefer`) writes the worker tasks,
+and `debrief` waits until they finish, reports their outcome and may brief
+follow-up tasks (also role `briefer`).
+
+- `schedules/renovate-onboarding.yaml`: every 6 hours at minute 40. Its brief
+  step outputs onboarding, secret-sync, CI-fix and tailor tasks; its debrief
+  step reports what they moved forward and may output one process task.
 - `schedules/renovate-deps.yaml`: every 3 hours, 20 minutes after the Renovate
-  job. Its planner outputs update tasks for majors, grouped by package and
+  job. Its brief step outputs update tasks for majors, grouped by package and
   major across repositories (a pilot repository first, the rest after it
   merged), and for minor/patch PRs with red checks. Each task fixes, tests and
-  merges the Renovate PR. Its feedback step reports and may output one rule
+  merges the Renovate PR. Its debrief step reports and may output one rule
   task that pins a package which cannot be upgraded yet.
 - `schedules/renovate-pins.yaml`: weekly. Reviews one due pin and lifts it,
   raises it, or renews its reason. Lifting a cap hands the new version to
-  `renovate-deps` to test. Its feedback step may output one process task.
+  `renovate-deps` to test. Its debrief step may output one process task.
 - `roles/renovate-onboarder.yaml`: sets `renovateEnabled` for one repository in
   spigell/my-github.
 - `roles/renovate-applier.yaml`: applies the my-github stack when the only
@@ -30,16 +33,12 @@ Every pin (a packageRule with `allowedVersions` or `enabled: false`) carries
 its reason in `description`: `<reason>; source: <URL>; review after:
 YYYY-MM-DD`. A pin without that format is due for review.
 
-The generic roles they also use (`autopilot-planner`, `autopilot-feedback`,
-`ci-fixer`, `coder`, `reviewer`) and the `deploy-report` output schema live in
-my-reforge-tasks.
+The generic roles they also use (`briefer`, `debriefer`, `ci-fixer`, `coder`,
+`reviewer`) and the `deploy-report` output schema live in my-reforge-tasks.
 
-Apply changes from a reforge workbench with `task-admin`, roles first:
-
-```bash
-for f in reforge/roles/*.yaml; do task-admin registry role upsert --file "$PWD/$f"; done
-for f in reforge/schedules/*.yaml; do task-admin schedule upsert --file "$PWD/$f"; done
-```
-
-`--file` paths must be under `/spigell-reforge-ai`, so run this from a checkout
-there. Note that a schedule upsert re-enables a paused schedule.
+Seed sync applies these files: merging a change to `main` puts it in the
+registry within one sync interval (2 minutes by default), see
+my-reforge-tasks `docs/seed-sync.md`. The sync never deletes a row, so a
+removed or renamed entry must be deleted by hand with `task-admin registry
+role delete --name <id>` or `task-admin schedule delete --name <name>`. A
+schedule keeps its paused or running state when it is re-applied.
