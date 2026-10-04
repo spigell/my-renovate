@@ -13,9 +13,9 @@ template:
       - id: plan
         role: autopilot-planner
         agents:
-        - gpt-codex-6
+        - codex
         config:
-          gpt-codex-6:
+          codex:
             reasoning_effort: medium
         output:
           params:
@@ -23,7 +23,7 @@ template:
       - id: feedback
         role: autopilot-planner
         agents:
-        - google-agy-3.8
+        - agy
         output:
           params:
             max_tasks: 1
@@ -67,7 +67,7 @@ template:
           branch: reforge/chore/renovate-onboarding-<repo name>
           steps:
             - role: renovate-onboarder
-              agents: [google-agy-3.8]
+              agents: [agy]
           kind: chore
           workspace: isolated
           delivery: pr
@@ -85,7 +85,7 @@ template:
           branch: main
           steps:
             - role: renovate-applier
-              agents: [google-agy-3.8]
+              agents: [agy]
           kind: deploy
           workspace: isolated
           delivery: none
@@ -107,10 +107,10 @@ template:
           branch: reforge/fix/renovate-onboarding-ci
           steps:
             - role: ci-fixer
-              config: { gpt-codex-6: { reasoning_effort: medium } }
+              config: { codex: { reasoning_effort: medium } }
             - role: reviewer
-              agents: [gpt-codex-6]
-              config: { gpt-codex-6: { reasoning_effort: medium } }
+              agents: [codex]
+              config: { codex: { reasoning_effort: medium } }
           kind: fix
           workspace: isolated
           delivery: pr
@@ -126,11 +126,11 @@ template:
           pull_request_number: <n>
           steps:
             - role: coder
-              agents: [gpt-codex-6]
-              config: { gpt-codex-6: { reasoning_effort: medium } }
+              agents: [codex]
+              config: { codex: { reasoning_effort: medium } }
             - role: reviewer
-              agents: [gpt-codex-6]
-              config: { gpt-codex-6: { reasoning_effort: medium } }
+              agents: [codex]
+              config: { codex: { reasoning_effort: medium } }
           skill_sets: [renovate]
           kind: chore
           workspace: isolated
@@ -150,11 +150,11 @@ template:
           branch: spigell/chore/<short-slug>
           steps:
             - role: coder
-              agents: [gpt-codex-6]
-              config: { gpt-codex-6: { reasoning_effort: medium } }
+              agents: [codex]
+              config: { codex: { reasoning_effort: medium } }
             - role: reviewer
-              agents: [gpt-codex-6]
-              config: { gpt-codex-6: { reasoning_effort: medium } }
+              agents: [codex]
+              config: { codex: { reasoning_effort: medium } }
           skill_sets: [renovate]
           kind: chore
           workspace: isolated
