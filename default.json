@@ -55,8 +55,8 @@
       "allowedVersions": "<=3.267.0"
     },
     {
-      "description": "my-cloud-resume runs TypeScript through ts-node, which has no TypeScript 7 compiler API; the repositories that already moved to TypeScript 7 keep getting its updates; source: https://github.com/spigell/my-cloud-resume/pull/58; review after: 2026-11-02",
-      "matchRepositories": ["spigell/my-cloud-resume", "spigell/pulumi-talos-cluster", "spigell/my-nodejs-libs"],
+      "description": "my-cloud-resume runs TypeScript through ts-node, which has no TypeScript 7 compiler API; the repositories that already moved to TypeScript 7 keep getting its updates / my-cloud-identity lints with typescript-eslint, which supports only TypeScript below 6.1 and crashes on TypeScript 7; source: https://github.com/spigell/my-cloud-resume/pull/58, https://github.com/typescript-eslint/typescript-eslint/pull/12803; review after: 2026-11-04",
+      "matchRepositories": ["spigell/my-cloud-resume", "spigell/pulumi-talos-cluster", "spigell/my-nodejs-libs", "spigell/my-cloud-identity"],
       "matchPackageNames": ["typescript"],
       "allowedVersions": "<7"
     }
