@@ -28,6 +28,12 @@ follow-up tasks (also role `briefer`).
   change is the `RENOVATE_REPOSITORIES` secret.
 - `roles/renovate-pin-reviewer.yaml`: reviews one pin from upstream evidence
   and edits only that rule.
+- `roles/renovate-updater.yaml`: the coder of a `renovate-deps` update task.
+  It ends as Updated (commit), Nothing to change (`no_changes`, the PR merges
+  as it is) or Stopped (an upstream fix or redesign is needed: it reverts its
+  edits, gives neither, and starts its summary with `Stopped: <reason>;
+  evidence: ...; upstream: ...`). The worker fails a stopped task because
+  nothing changed, and the debrief reads that line to pin the package.
 
 Every pin (a packageRule with `allowedVersions` or `enabled: false`) carries
 its reason in `description`: `<reason>; source: <URL>; review after:
