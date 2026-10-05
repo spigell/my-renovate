@@ -28,7 +28,7 @@
       "groupName": "{{{depName}}}"
     },
     {
-      "description": "Don't update golang in FROM lines, we use ARG instead",
+      "description": "Keep golang Dockerfile updates disabled because annotated ARGs manage Go image tags separately from Go toolchain versions, and the Dockerfile manager also expands ARG-backed FROM images; source: https://github.com/spigell/my-images/pull/383; review after: 2026-12-07",
       "matchManagers": ["dockerfile"],
       "matchPackageNames": ["golang"],
       "enabled": false
