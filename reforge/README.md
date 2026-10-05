@@ -46,9 +46,11 @@ Known gaps in `renovate-deps`, which need my-reforge-runner changes:
   Renovate branch before the coder runs, so Renovate treats the branch as
   edited and neither rewrites nor closes it after the pin lands. The brief
   skips such PRs and lists them as pinned and still open. Reset one with its
-  rebase/retry checkbox, so Renovate rebuilds the branch under the pin and
-  autocloses it; closing it by hand makes Renovate ignore that update, which
-  would also hide it after the pin is lifted.
+  rebase/retry checkbox, so Renovate rebuilds the branch under the pin: it
+  closes, or becomes the PR for the highest allowed version (a group branch
+  such as `renovate/chore/major-typescript` carries no version). Closing it
+  by hand makes Renovate ignore that update, which would also hide it after
+  the pin is lifted.
 - A `blocked` task is not terminal, so a debrief that waits for one runs only
   at its 24-hour timeout, and the overlap guard skips every fire until then.
   The brief's skip of a group the previous debrief reported as blocked

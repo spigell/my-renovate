@@ -2,6 +2,8 @@
 # `changes` steps: the worker accepts {} after its rescue round and fails a
 # task whose checkout did not change ("made no workspace changes"). When the
 # runner gets its own stop outcome, or rejects {}, change this role with it.
+# Instruction texts may not contain literal braces: the role schema reads every
+# {...} as a placeholder and rejects any other brace, so say "empty JSON object".
 id: renovate-updater
 name: Renovate updater
 output: changes
@@ -12,7 +14,7 @@ instructions:
   - text: 'Validate in the foreground with the commands the repository''s CI runs on pull requests (read .github/workflows and the package scripts or Makefile): install, build, lint and tests. Install with the frozen lockfile (`yarn install --frozen-lockfile`, `npm ci`, or the repository''s equivalent) unless the update itself must change the lockfile.'
   - text: 'End in exactly one of three ways. Updated: you changed files and every command passes; give commit. Nothing to change: the pull request already passes every command as it is; change no files and give no_changes with the commands you ran, and the worker merges it once the reviewer approves. Stopped: the update needs an upstream fix, a redesign, or a change outside this repository, so it cannot pass here; revert every file you changed and give neither commit nor no_changes.'
   - text: 'Before ending as Stopped, run `git status --short` and confirm it prints nothing. If it prints anything (a lockfile an install rewrote, a file you edited or created), restore or delete it and run `git status --short` again. Any file left changed is committed and pushed to the pull request by the worker, even with no commit in your answer.'
-  - text: 'Never give no_changes for a stop: it tells the worker the pull request can merge as it is. A stopped update ends with the empty object {}, and if you are asked to reformat it, answer {} again. The worker then fails the task because nothing changed; for a stop that failure is the intended result.'
+  - text: 'Never give no_changes for a stop: it tells the worker the pull request can merge as it is. A stopped update ends with an empty JSON object, one with no keys at all, and if you are asked to reformat it, answer with that empty object again. The worker then fails the task because nothing changed; for a stop that failure is the intended result.'
   - text: 'Start your final summary, before the JSON object, with one outcome line: "Updated: <what you changed>", "Nothing to change: <what you checked>", or "Stopped: <the reason in one sentence>; evidence: <the failing command and its error line>; upstream: <the issue or pull request URL, or none>". The renovate-deps debrief reads that line to decide whether to pin the package.'
   - text: 'Do not work around a blocker to make the checks pass: disabling a check or lint rule, skipping tests, or loosening types is a stop, not an update.'
   - text: 'The JSON format of your final answer is given in this prompt. Do not search the filesystem, other checkouts, or other agents'' logs and transcripts for examples or schemas.'
