@@ -55,12 +55,14 @@ template:
            b. Content (get_diff): renovate.json is a JSON object with only $schema and, optionally, extends whose entries all start with github>spigell/my-renovate.
            c. State (get): open, not a draft, targets the default branch, mergeable_state clean or unstable.
            Then the checks (get_check_runs):
-           - Any failed, cancelled or pending: output the ci-fix task (key "<repo>#<n>:ci-fix") and the tailor task (key "<repo>#<n>:tailor", after ["<repo>#<n>:ci-fix"]).
+           - Any still pending, none failed: skip the PR this run and name it in the summary.
+           - Any failed or cancelled, and a reforge/fix/ci-default-branch PR in that repository merged after the PR's last check run (search_pull_requests): the checks are stale. Output the tailor task alone; its worker merges the base branch, which runs them again.
+           - Any failed or cancelled otherwise: the PR only adds renovate.json, so it cannot cause them; they fail on the default branch. Handle them with the standard ci-fix task, following "Waiting, repeats and the operator" in the reforge-task-author skill (key "ci-fix:spigell/<repo>", naming each failing check with its job URL and Configure Renovate PR #<n> as the blocked work), and output the tailor task (key "<repo>#<n>:tailor", after ["ci-fix:spigell/<repo>"]) in the same output. Keep the skill's "waiting for ci-fix" list in the summary, and name a repository the skill sends to the operator as needs-operator.
            - All passed: output the tailor task alone.
            From the PR's 'What to Expect' section, put in the summary the number of PRs Renovate will create and the entries on renovate/chore/major-* branches.
         2. Onboarding. Only if fewer than 3 Configure Renovate PRs are open: in src/repos-data.ts of this checkout, pick the first repository, in file order, that has renovateEnabled unset or false, has includeBotContributors: true, is not archived, is not my-renovate, and has no comment opting out of Renovate. Output the onboarding task (key "onboarding:<repo>") and the secret-sync task (key "secret-sync:<repo>", after ["onboarding:<repo>"]). One repository per run. If none remain, say in the summary 'all repositories are onboarded'.
         3. Secret not applied. For a repository with renovateEnabled: true in src/repos-data.ts of this checkout, no renovate.json on its default branch (github-mcp get_file_contents), no open Configure Renovate PR, and a merged onboarding PR in spigell/my-github older than 4 hours: output the secret-sync task alone (key "secret-sync:<repo>").
-        Always output a task when the rules say so: the runner skips a key that already has an active task or one created in the last 24 hours, and resolves `after` to it.
+        Always output a task when the rules say so: the runner skips a key that already has an active task or one created in the last 2 hours, and resolves `after` to it.
 
         onboarding task:
           repo: spigell/my-github
@@ -101,24 +103,6 @@ template:
             5. After an apply, run a final preview and report 0 changes, or what remains.
             Report: checkout state, preview summary (counts plus every changed resource and property), applied or not with the reason, apply result, final preview.
             Stop if: any guard above trips, or pulumi-deployer is unavailable; report and do nothing else.
-
-        ci-fix task:
-          repo: spigell/<repo>
-          branch: reforge/fix/renovate-onboarding-ci
-          steps:
-            - role: ci-fixer
-              config: { codex: { reasoning_effort: medium } }
-            - role: reviewer
-              agents: [codex]
-              config: { codex: { reasoning_effort: medium } }
-          kind: fix
-          workspace: isolated
-          delivery: pr
-          priority: medium
-          goal: Make the default branch CI of spigell/<repo> green so its Configure Renovate PR #<n> can merge
-          details: >-
-            Context: the Renovate onboarding PR #<n> in spigell/<repo> only adds renovate.json, but these checks fail on it: <each failing check name with its job URL>. They fail because of the repository, not the PR.
-            Out of scope: renovate.json and Renovate PRs.
 
         tailor task:
           repo: spigell/<repo>
@@ -170,6 +154,7 @@ template:
 
         Debrief:
         For each task the briefer created, report its final status, its PR link, and what it moved forward: the repository onboarded, the secret applied, the onboarding PR green or merged (check with pull_request_read). Name archived tasks with the dependency that stopped them, list every needs-operator item with the reason, and say what the next run will pick up.
+        Carry the brief's "waiting for ci-fix" list into your summary, updated as "Waiting, repeats and the operator" in the reforge-task-author skill says (a ci-fix the brief created that failed or was archived stays on it), so the next brief can skip those repositories or name them as needs-operator. Write "waiting for ci-fix: none" when it is empty.
         Then output up to one process task (the process task above, key "renovate-onboarding-process:<short-slug>") for a problem this run's results show: a reviewer finding nobody fixed, a failed or blocked task, a check that could not run, or a step that redid another step's work. Skip problems already covered by a briefer task of this run; name the rest in the summary.
         Keep the summary under 3500 characters: one line per task, then short lists. A summary over 4000 characters is rejected.
 
