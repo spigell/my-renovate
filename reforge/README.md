@@ -11,14 +11,25 @@ and `debrief` waits until they finish, reports their outcome and may brief
 follow-up tasks (also role `briefer`).
 
 - `schedules/renovate-onboarding.yaml`: every 6 hours at minute 40. Its brief
-  step outputs onboarding, secret-sync, CI-fix and tailor tasks; its debrief
-  step reports what they moved forward and may output one process task.
+  step outputs onboarding, secret-sync, CI-fix (the standard ci-fix task) and
+  tailor tasks; its debrief step reports what they moved forward and may
+  output one process task.
 - `schedules/renovate-deps.yaml`: every 3 hours, 20 minutes after the Renovate
   job. Its brief step outputs update tasks for majors, grouped by package and
   major across repositories (a pilot repository first, the rest after it
   merged), and for minor/patch PRs with red checks. Each task fixes, tests and
   merges the Renovate PR. Its debrief step reports and may output one rule
-  task that pins a package which cannot be upgraded yet.
+  task that pins a package which cannot be upgraded yet, and one standard
+  ci-fix task when an update stopped on a check that already fails on the
+  repository's default branch (`upstream: pre-existing on <branch>`). The
+  brief skips that repository's PRs until the fix lands.
+
+The standard ci-fix task (key `ci-fix:<owner/repo>`, `ci-fixer` then
+`reviewer`) is defined once in the `reforge-task-author` skill of
+my-reforge-tasks. A schedule enables it in its details instead of copying the
+payload. Workers read that skill live from
+`/spigell-reforge-ai/reforge/tasks/skills`, so a change there needs no seed
+sync, only a merge and a pull of that checkout.
 - `schedules/renovate-pins.yaml`: weekly. Reviews one due pin and lifts it,
   raises it, or renews its reason. Lifting a cap hands the new version to
   `renovate-deps` to test. Its debrief step may output one process task.
