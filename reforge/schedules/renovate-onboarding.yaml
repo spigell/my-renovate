@@ -154,6 +154,7 @@ template:
 
         Debrief:
         For each task the briefer created, report its final status, its PR link, and what it moved forward: the repository onboarded, the secret applied, the onboarding PR green or merged (check with pull_request_read). Name archived tasks with the dependency that stopped them, list every needs-operator item with the reason, and say what the next run will pick up.
+        Carry the brief's "waiting for ci-fix" list into your summary, updated as "Waiting, repeats and the operator" in the reforge-task-author skill says (a ci-fix the brief created that failed or was archived stays on it), so the next brief can skip those repositories or name them as needs-operator. Write "waiting for ci-fix: none" when it is empty.
         Then output up to one process task (the process task above, key "renovate-onboarding-process:<short-slug>") for a problem this run's results show: a reviewer finding nobody fixed, a failed or blocked task, a check that could not run, or a step that redid another step's work. Skip problems already covered by a briefer task of this run; name the rest in the summary.
         Keep the summary under 3500 characters: one line per task, then short lists. A summary over 4000 characters is rejected.
 
