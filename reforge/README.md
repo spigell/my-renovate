@@ -20,9 +20,9 @@ follow-up tasks (also role `briefer`).
   merged), and for minor/patch PRs with red checks. Each task fixes, tests and
   merges the Renovate PR. Its debrief step reports and may output one rule
   task that pins a package which cannot be upgraded yet, and one standard
-  ci-fix task when an update stopped on a check that already fails on the
-  repository's default branch (`upstream: pre-existing on <branch>`). The
-  brief skips that repository's PRs until the fix lands.
+  ci-fix task when an update finds a check that already fails on the
+  repository's default branch (`needs_operator` with a proven pre-existing
+  reason). The brief skips that repository's PRs until the fix lands.
 
 The standard ci-fix task (key `ci-fix:<owner/repo>`, `ci-fixer` then
 `reviewer`) is defined once in the `reforge-task-author` skill of
@@ -41,15 +41,12 @@ sync, only a merge and a pull of that checkout.
   and edits only that rule.
 - `roles/renovate-updater.yaml`: the coder of a `renovate-deps` update task.
   It ends as Updated (commit), Nothing to change (`no_changes`, the PR merges
-  as it is) or Stopped (an upstream fix or redesign is needed: it reverts its
-  edits, gives neither, and starts its summary with `Stopped: <reason>;
-  evidence: ...; upstream: ...`). The worker fails a stopped task because
-  nothing changed, and the debrief reads that line to pin the package.
-  A stop must leave `git status --short` empty: the worker commits any file
-  left changed. The Stopped ending depends on the my-reforge-runner contract
-  for `changes` steps ({} is accepted after the rescue round, and an
-  unchanged checkout fails the task), so change this role when that contract
-  gets its own stop outcome.
+  as it is), or a declared error. `upstream_blocked` carries the reason,
+  blocking package and optional upstream URL for the debrief to consider a
+  scoped pin. Built-in `needs_operator` carries policy questions and proven
+  default-branch failures; `external_unavailable` identifies a down service.
+  Errors leave `git status --short` empty: the worker commits any file left
+  changed. The debrief reads the role error id and evidence from the task.
 
 Known gaps in `renovate-deps`, which need my-reforge-runner changes:
 
@@ -62,10 +59,6 @@ Known gaps in `renovate-deps`, which need my-reforge-runner changes:
   such as `renovate/chore/major-typescript` carries no version). Closing it
   by hand makes Renovate ignore that update, which would also hide it after
   the pin is lifted.
-- A `blocked` task is not terminal, so a debrief that waits for one runs only
-  at its 24-hour timeout, and the overlap guard skips every fire until then.
-  The brief's skip of a group the previous debrief reported as blocked
-  therefore takes effect on the first run after that timeout.
 
 Every pin (a packageRule with `allowedVersions` or `enabled: false`) carries
 its reason in `description`: `<reason>; source: <URL>; review after:
