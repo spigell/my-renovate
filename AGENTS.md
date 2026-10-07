@@ -7,6 +7,7 @@
 - This repository owns the central Renovate GitHub Action workflow for the `spigell` account.
 - `renovate.json` is the source of truth for shared Renovate behavior used by the scheduled runner.
 - `.github/workflows/renovate.yaml` is the source of truth for the central Renovate execution flow and GitHub App token wiring.
+- Run logs are written for a public repository: the job scans mostly private repositories, so scheduled runs log at `warn` and `.github/workflows/delete-renovate-logs.yaml` deletes each run's log when it ends (skipped while the repository is private). Do not raise the scheduled `LOG_LEVEL`; dispatch a run with `log_level: debug` to debug.
 - `reforge/` is the source of truth for the Renovate reforge schedules and their Renovate-specific roles. The reforge task registry holds the live copies.
 
 ## Reforge schedules

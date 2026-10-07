@@ -61,4 +61,4 @@ If local validation passes but the hosted pipeline fails, or PRs do not appear:
 
 * **GitHub App Permissions:** Confirm the app token has workflow write permissions if PRs modifying `.github/workflows/*` are failing to push.
 * **Rate Limits:** Note that `prHourlyLimit` is set to `0` in this repo. If PRs are missing, check the Dependency Dashboard for blocked or ignored updates and pending branch states.
-* **Workflow Logs:** Use the `github-actions-debugger` skill to inspect the latest central run. Search for `Config validation`, `no-work`, `prNo`, `dependencyDashboard`, and push errors.
+* **Workflow Logs:** Scheduled runs log at `warn`, and `delete-renovate-logs.yaml` deletes each run's log when it ends once the repository is public. To debug, dispatch `renovate.yaml` with `log_level: debug` (and `repositories` set to the one repository), then read the log with the `github-actions-debugger` skill while the run is still in progress. Search for `Config validation`, `no-work`, `prNo`, `dependencyDashboard`, and push errors. Never paste a private repository's log content into a public issue or PR.

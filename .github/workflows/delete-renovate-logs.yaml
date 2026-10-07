@@ -1,0 +1,34 @@
+name: Delete Renovate logs
+
+# Run logs of a public repository are visible to everyone. The Renovate job
+# scans private repositories, so its log is deleted as soon as the run ends.
+on:
+  workflow_run:
+    workflows: [Renovate]
+    types: [completed]
+
+permissions:
+  actions: write
+
+jobs:
+  delete-logs:
+    # While the repository is private nobody else can read the logs, and this
+    # job would only spend Actions minutes.
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete the finished Renovate run's log
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          # The log can take a few seconds to become deletable after the run ends.
+          for attempt in 1 2 3 4 5; do
+            if gh api --method DELETE "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/logs"; then
+              echo "Deleted the log of run ${RUN_ID}."
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          echo "::error::Could not delete the log of run ${RUN_ID}."
+          exit 1
