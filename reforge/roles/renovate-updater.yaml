@@ -1,29 +1,37 @@
-# The Stopped ending depends on the current my-reforge-runner contract for
-# `changes` steps: the worker accepts {} after its rescue round and fails a
-# task whose checkout did not change ("made no workspace changes"). When the
-# runner gets its own stop outcome, or rejects {}, change this role with it.
 # Instruction texts may not contain literal braces: the role schema reads every
-# {...} as a placeholder and rejects any other brace, so say "empty JSON object".
+# {...} as a placeholder and rejects any other brace.
 id: renovate-updater
 name: Renovate updater
 output: changes
 agents: [codex]
 skill_sets: [renovate, git]
+error_outcomes:
+  - id: upstream_blocked
+    description: Stop when an upstream dependency cannot support the requested version (for example a peer range that excludes it), so no local change can make the required checks pass.
+    evidence:
+      type: object
+      required: [reason, blocking_package]
+      properties:
+        reason: {type: string}
+        blocking_package: {type: string}
+        upstream_url: {type: string}
+    status: blocked
+    retryable: false
 instructions:
   - text: 'Role: renovate-updater. Make the one Renovate pull request the task names pass its build, lint and tests with the version Renovate chose. Change only what the update needs: the lockfile, and the code, config and tests the new version breaks. Never pin the package or change renovate.json.'
   - text: 'Validate in the foreground with the commands the repository''s CI runs on pull requests (read .github/workflows and the package scripts or Makefile): install, build, lint and tests. Install with the frozen lockfile (`yarn install --frozen-lockfile`, `npm ci`, or the repository''s equivalent) unless the update itself must change the lockfile.'
-  - text: 'End in exactly one of three ways. Updated: you changed files and every command passes; give commit. Nothing to change: the pull request already passes every command as it is; change no files and give no_changes with the commands you ran, and the worker merges it once the reviewer approves. Stopped: the update needs an upstream fix, a redesign, or a change outside this repository, or a check fails the same way on the default branch without this update (a pre-existing failure, not the update''s to fix), so it cannot pass here; revert every file you changed and give neither commit nor no_changes.'
-  - text: 'Before calling a failure pre-existing, prove it offline: the worker already fetched the default branch, so run `git worktree add --detach "$(mktemp -d)" origin/<default branch>` (a new directory outside this checkout, never inside it), run the failing command in that directory, confirm it fails with the same errors, then `git worktree remove --force <that directory>` and `git worktree prune`. Never print, read or reuse the remote URL or any token (no `git remote -v`, no `git remote get-url`, no new clone). If the worktree cannot be made, say so in the Stopped line (`upstream: pre-existing on <default branch>, unproven: <why>`) instead of fixing unrelated failures.'
-  - text: 'Before ending as Stopped, run `git status --short` and confirm it prints nothing. If it prints anything (a lockfile an install rewrote, a file you edited or created), restore or delete it and run `git status --short` again. Any file left changed is committed and pushed to the pull request by the worker, even with no commit in your answer.'
-  - text: 'Never give no_changes for a stop: it tells the worker the pull request can merge as it is. A stopped update ends with an empty JSON object, one with no keys at all, and if you are asked to reformat it, answer with that empty object again. The worker then fails the task because nothing changed; for a stop that failure is the intended result.'
-  - text: 'Start your final summary, before the JSON object, with one outcome line: "Updated: <what you changed>", "Nothing to change: <what you checked>", or "Stopped: <the reason in one sentence>; evidence: <the failing command and its error line>; upstream: <the issue or pull request URL, pre-existing on <default branch>, or none>". The renovate-deps debrief reads that line: it pins the package for an upstream blocker, and briefs a fix of the default branch for a pre-existing failure.'
-  - text: 'Do not work around a blocker to make the checks pass: disabling a check or lint rule, skipping tests, or loosening types is a stop, not an update.'
+  - text: 'End with commit when the update passes all required checks, or no_changes when the pull request already passes and needs no edits. When an upstream dependency cannot support the requested version and no local fix can pass the checks, end with error id upstream_blocked and evidence containing reason, blocking_package and upstream_url when available. Include the failing command and error line in your summary. Never give no_changes for a blocked update: it tells the worker the pull request can merge as it is.'
+  - text: 'Use the built-in needs_operator error with reason and a question when a policy decision or redesign is needed. Use the built-in external_unavailable error with reason and service when a service needed for the work is down. A check that fails identically on the default branch also needs intervention: prove it as below, then use needs_operator with reason starting "pre-existing on <default branch>:" and a question asking for the default-branch CI fix; if unproven, state that in the reason. Do not report an upstream dependency blocker for a pre-existing check.'
+  - text: 'Before calling a failure pre-existing, prove it offline: the worker already fetched the default branch, so run `git worktree add --detach "$(mktemp -d)" origin/<default branch>` (a new directory outside this checkout, never inside it), run the failing command in that directory, confirm it fails with the same errors, then `git worktree remove --force <that directory>` and `git worktree prune`. Never print, read or reuse the remote URL or any token (no `git remote -v`, no `git remote get-url`, no new clone). If the worktree cannot be made, mark the failure unproven in the needs_operator reason instead of fixing unrelated failures.'
+  - text: 'Before returning an error, run `git status --short` and confirm it prints nothing. If it prints anything (a lockfile an install rewrote, a file you edited or created), restore or delete it and run `git status --short` again. Any file left changed is committed and pushed to the pull request by the worker, even with an error in your answer.'
+  - text: 'Start your final summary, before the JSON object, with "Updated: <what you changed>", "Nothing to change: <what you checked>", or "Error <id>: <reason>; evidence: <failing command and error line>; upstream: <issue or pull request URL, pre-existing on <default branch>, or none>". The renovate-deps debrief uses the structured error id and evidence for its decisions.'
+  - text: 'Do not work around a blocker to make the checks pass: disabling a check or lint rule, skipping tests, or loosening types is grounds for the applicable declared error, not an update.'
   - text: 'The JSON format of your final answer is given in this prompt. Do not search the filesystem, other checkouts, or other agents'' logs and transcripts for examples or schemas.'
   - text: 'Leave your changes uncommitted in this checkout. The worker commits and pushes them to the task branch and updates PR #{pull_request_number}.'
     when: pr_existing
   - text: 'Do not create commits, push, switch branches, or open or merge pull requests yourself; the worker does that, as the git skill says.'
     when: pr
-  - text: 'This is round {round} of {max_rounds}. The previous round was not accepted. Address every point below; if a point can only be met by working around an upstream blocker, end as Stopped instead:'
+  - text: 'This is round {round} of {max_rounds}. The previous round was not accepted. Address every point below; if a point can only be met by working around an upstream dependency blocker, return upstream_blocked with evidence:'
     when: retry_feedback
   - text: '{feedback}'
     when: retry_feedback
