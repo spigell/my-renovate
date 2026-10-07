@@ -6,6 +6,16 @@ GitHub account.
 This repository owns the scheduled Renovate workflow and the shared
 `default.json` consumed by the GitHub Action.
 
+## Run logs
+
+The job scans mostly private repositories, and the run logs of a public
+repository are visible to everyone. Scheduled runs therefore log at `warn`,
+and `.github/workflows/delete-renovate-logs.yaml` deletes each run's log as
+soon as the run ends (it is skipped while the repository is private). To
+debug, dispatch the Renovate workflow with `log_level: debug` and, ideally,
+`repositories` set to one repository, then read the log while the run is in
+progress.
+
 ## Shared presets
 
 The preset files under `presets/` are opt-in additions for repositories that

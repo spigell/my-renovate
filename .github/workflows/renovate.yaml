@@ -9,6 +9,18 @@ on:
         description: 'Comma separated list of repositories to scan'
         required: false
         type: string
+      log_level:
+        description: 'Renovate log level. The run log is deleted when the run ends, so read a debug log while it runs.'
+        required: false
+        type: choice
+        options:
+          - warn
+          - info
+          - debug
+        default: warn
+
+permissions:
+  contents: read
 
 jobs:
   renovate:
@@ -31,4 +43,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
         env:
           RENOVATE_REPOSITORIES: ${{ github.event.inputs.repositories || secrets.RENOVATE_REPOSITORIES }}
-          LOG_LEVEL: debug
+          # Run logs of a public repository are visible to everyone, and the
+          # repositories this job scans are mostly private: keep the scheduled
+          # log to warnings.
+          LOG_LEVEL: ${{ github.event.inputs.log_level || 'warn' }}
