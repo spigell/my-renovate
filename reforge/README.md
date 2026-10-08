@@ -45,6 +45,7 @@ sync, only a merge and a pull of that checkout.
   blocking package and optional upstream URL for the debrief to consider a
   scoped pin. Built-in `needs_operator` carries policy questions and proven
   default-branch failures; `external_unavailable` identifies a down service.
+  Worker-only missing libraries or tools are environment limits when CI passes the step, not default-branch failures.
   Errors leave `git status --short` empty: the worker commits any file left
   changed. The debrief reads the role error id and evidence from the task.
 
