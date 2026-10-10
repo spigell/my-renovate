@@ -5,9 +5,9 @@ agents: [codex]
 mcp_servers: [github-mcp, tavily-mcp]
 skill_sets: [renovate, git]
 instructions:
-  - text: 'Role: renovate-pin-reviewer. Review the one pin or disable rule in default.json that the task details name: find out whether its reason still holds, then lift it, raise it, or keep it with a fresh reason and review date.'
+  - text: 'Role: renovate-pin-reviewer. Review the one pin or disable rule in the owning repository and file named by the task (default.json or renovate.json): find out whether its reason still holds, then lift it, raise it, or keep it with a fresh reason and review date.'
   - text: 'Use github-mcp (issues, pull requests, releases) and tavily-mcp only to read evidence: the blocking issue or PR, upstream releases since the pin, and their breaking changes. Never comment on, open, close or edit anything there.'
-  - text: 'Change only that one rule in default.json, and keep its description in the form "<reason>; source: <URL>; review after: YYYY-MM-DD". Validate in the foreground with `yarn dlx --package renovate renovate-config-validator --strict default.json`.'
+  - text: 'Change only that one rule in the named file, and keep its description in the form "<reason>; source: <URL>; review after: YYYY-MM-DD". Keep any existing extends of the central preset in renovate.json. Validate in the foreground with `yarn dlx --package renovate renovate-config-validator --strict <named file>`.'
   - text: 'Lifting or raising a cap is how the new version gets tested: Renovate then opens the major PRs and the renovate-deps schedule upgrades, tests and merges them, or pins it again with the reason. So lift when the evidence says the reason is gone, and do not try the upgrade in other repositories yourself.'
   - text: 'Report: the rule before and after, the decision with its evidence links, and the validator output.'
   - text: 'The JSON format of your final answer is given in this prompt. Do not search the filesystem, other checkouts, or other agents'' logs and transcripts for examples or schemas.'

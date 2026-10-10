@@ -1,5 +1,5 @@
 # The renovate-pins schedule reviews one due pin or disable rule each week
-# in the central config and lifts it, raises it, or renews its reason.
+# in the shared or repository config and lifts it, raises it, or renews its reason.
 # Standing rules whose description starts with "policy:" are excluded.
 name: renovate-pins
 cron: 0 7 * * 1
@@ -37,19 +37,19 @@ template:
       kind: chore
       priority: low
       max_rounds: 3
-      goal: Review one due pin in the central Renovate config and lift it, raise it, or renew its reason
+      goal: Review one due Renovate pin and lift it, raise it, or renew its reason
       details: |
-        Context: default.json in this checkout is the central Renovate config for every spigell repository. A pin is a packageRule with allowedVersions (a version cap) or enabled: false, except a standing policy rule whose description starts with "policy:". Each pin's description should read "<reason>; source: <URL>; review after: YYYY-MM-DD". Pins go stale: the blocker gets fixed upstream, or the churn that made us pin settles. Lifting a cap is how the new version gets tested: Renovate opens the PRs and the renovate-deps schedule upgrades, tests and merges them, or pins again with the reason.
+        Context: default.json in this checkout is the shared Renovate preset; repository-specific pins live in each target repository's renovate.json. A pin is a packageRule with allowedVersions (a version cap) or enabled: false, except a standing policy rule whose description starts with "policy:". Each pin's description should read "<reason>; source: <URL>; review after: YYYY-MM-DD". Pins go stale: the blocker gets fixed upstream, or the churn that made us pin settles. Lifting a cap is how the new version gets tested: Renovate opens the PRs and the renovate-deps schedule upgrades, tests and merges them, or pins again with the reason.
 
         Brief:
-        1. List every pin in default.json with its index, packages, cap and description. Exclude rules whose description starts with "policy:" before checking whether they are due.
+        1. Read default.json in this checkout. With github-mcp get_file_contents, read src/repos-data.ts on the default branch of spigell/my-github and identify every repository with renovateEnabled: true. Read renovate.json on the default branch of each such repository with github-mcp get_file_contents. A repository without that file has no local pins yet; name it as pending onboarding in the summary. List every pin from default.json and the files found, with its owning repository, file, packageRules index, packages, cap and description. Exclude rules whose description starts with "policy:" before checking whether they are due.
         2. A pin is due when its review after date is today or earlier, or when its description lacks that format.
-        3. Output the pin-review task for one due pin: the earliest review after date first, then pins without one in file order. Name the other due pins in the summary. If none is due, output no tasks and say so.
+        3. Output the pin-review task for one due pin: the earliest review after date first, then pins without one, breaking ties by repository, file and rule index. Name the other due pins with their owning repositories in the summary. If none is due, output no tasks and say so.
         Always output the task when the rules say so: the runner skips a key that already has an active task or one created in the last 24 hours.
 
-        pin-review task (key "pin:<package slug>"):
-          repo: spigell/my-renovate
-          branch: reforge/chore/renovate-pin-review-<package slug>
+        pin-review task (key "pin-review:<owner/repo>:<pin file slug>:<index>"):
+          repo: <owning repository; spigell/my-renovate for default.json>
+          branch: reforge/chore/renovate-pin-review-<package slug>-<pin file slug>-<index>
           steps:
             - role: renovate-pin-reviewer
               agents: [codex]
@@ -61,13 +61,13 @@ template:
           workspace: isolated
           delivery: pr
           priority: low
-          goal: Review the default.json pin on <packages> (<cap>) and lift it, raise it, or renew its reason
+          goal: Review the <pin file> pin on <packages> (<cap>) in <owning repository> and lift it, raise it, or renew its reason
           details: >-
-            Context: packageRules[<index>] in default.json pins <packages> with <cap>. Its description: "<description, or 'none'>".
+            Context: packageRules[<index>] in <pin file: default.json or renovate.json> of <owning repository> pins <packages> with <cap>. Its description: "<description, or 'none'>".
             Decide from evidence: is the blocker issue or PR resolved, what upstream released since the pin and with which breaking changes, and is the churn that made us pin still there. Then lift the rule (remove it, or only the cap), raise the cap, or keep it with an updated reason, source and a review after date 30 to 90 days out.
-            A pin without a recorded reason: look for it in this repository's git log and blame for that rule, write the reason you find with its source, or lift it when none holds.
+            A pin without a recorded reason: look for it in the owning repository's git log and blame for that rule, write the reason you find with its source, or lift it when none holds. Keep any existing extends of the central preset in renovate.json.
             Report: the rule before and after, the decision with evidence links, and the validator output.
-            Stop if: the rule is gone or already changed on main; report it.
+            Stop if: the rule is gone or already changed on the owning repository's default branch; report it.
 
         process task:
           repo: spigell/my-renovate
@@ -88,7 +88,7 @@ template:
             Context: <the problem this run exposed, with a reviewer finding, failed task, check, PR, or file:line as evidence>.
             Scope: <the smallest fix for one concern only in the shared config, presets, workflow, README, or reforge/ specs of spigell/my-renovate>. Nothing deploys; no Pulumi applies and no secrets are changed or requested.
             Done when: the fix is verified; if config changed, `yarn dlx --package renovate renovate-config-validator --strict default.json` passes.
-            Report: what changed, why, and checks run; if reforge/ changed, say the operator must upsert it.
+            Report: what changed, why, and checks run; if reforge/ changed, seed sync applies it from main after merge.
             Stop if: the fix needs a secret (name the missing secret, never ask for its value) or a design decision; report the blocker.
 
         Debrief:
@@ -96,4 +96,4 @@ template:
         Then output up to one process task (the process task above, key "renovate-pins-process:<short-slug>") for a problem this run's results show: a reviewer finding nobody fixed, a failed or blocked task, a check that could not run, or a step that redid another step's work. Skip problems already covered by a briefer task of this run; name the rest in the summary.
         Keep the summary under 3500 characters: one line per task, then short lists. A summary over 4000 characters is rejected.
 
-        Stop if: default.json cannot be read; output no tasks and report the error.
+        Stop if: default.json, the renovateEnabled list, or an existing renovate.json cannot be read for a reason other than not found; output no tasks and report the error.

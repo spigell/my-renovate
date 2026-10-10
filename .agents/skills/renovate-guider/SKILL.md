@@ -12,7 +12,8 @@ This skill provides procedural knowledge for maintaining, troubleshooting, and l
 
 ### 1. Core Sources of Truth
 * `renovate.json`: Defines the shared behavior and custom regex managers.
-* `default.json`: Skips routine language package patches while preserving app, runtime, and vulnerability fix updates; `policy:` rules are excluded from pin reviews.
+* `default.json`: Shared preset that skips routine language package patches while preserving app, runtime, and vulnerability fix updates. It keeps account-wide rules, policy rules and existing legacy pins until they are migrated; `policy:` rules are excluded from pin reviews.
+* Target repository `renovate.json`: Extends the central preset and holds new pins that apply only to that repository. Keep its `extends` when adding a packageRule. Review pins here and in `default.json`; an account-wide pin in `default.json` requires explicit operator approval.
 * `.github/workflows/renovate.yaml`: Controls the scheduled execution, token generation, and runner environment.
 
 ### 2. Custom Regex Managers
@@ -25,7 +26,9 @@ The central config implements specific custom regex managers. When troubleshooti
 ### 3. Validating the Central Config
 Always run the validator against the shared config before testing behavior or pushing changes:
 
-`yarn dlx --package renovate renovate-config-validator --strict /spigell-reforge-ai/my-shared-infra/my-renovate/default.json`
+`yarn dlx --package renovate@43.222.0 renovate-config-validator --strict default.json`
+
+Run the same strict validator on a target repository's `renovate.json` when changing a local pin.
 
 ### 4. Local Dry Runs with Target Repository
 To test Renovate against a specific target repository (e.g., `/spigell-reforge-ai/my-shared-infra/my-images`) and see its proposed updates, you must navigate into that repository's directory. This ensures Renovate correctly identifies the local context and its `renovate.json` configuration.
