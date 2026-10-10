@@ -2,7 +2,8 @@
 
 The reforge schedules that onboard spigell repositories to this central
 Renovate job, test and merge the dependency PRs automerge does not take, and
-review the pins in `default.json`, plus the Renovate-specific roles they use.
+review pins in each target repository's `renovate.json` and in shared
+`default.json`, plus the Renovate-specific roles they use.
 This directory is the source of truth; the reforge task registry holds the live
 copies.
 
@@ -19,8 +20,9 @@ follow-up tasks (also role `briefer`).
   major across repositories (a pilot repository first, the rest after it
   merged), and for minor/patch PRs with red checks. Each task fixes, tests and
   merges the Renovate PR. Its debrief step reports and may output one rule
-  task that pins a package which cannot be upgraded yet, and one standard
-  ci-fix task when an update finds a check that already fails on the
+  task that pins a package in the failed repository's `renovate.json` when it
+  cannot be upgraded yet, and one standard ci-fix task when an update finds a
+  check that already fails on the
   repository's default branch (`needs_operator` with a proven pre-existing
   reason). The brief skips that repository's PRs until the fix lands.
 
@@ -30,8 +32,9 @@ my-reforge-tasks. A schedule enables it in its details instead of copying the
 payload. Workers read that skill live from
 `/spigell-reforge-ai/reforge/tasks/skills`, so a change there needs no seed
 sync, only a merge and a pull of that checkout.
-- `schedules/renovate-pins.yaml`: weekly. Reviews one due pin and lifts it,
-  raises it, or renews its reason. Lifting a cap hands the new version to
+- `schedules/renovate-pins.yaml`: weekly. Reviews one due pin from a target
+  repository's `renovate.json` or shared `default.json` and lifts it, raises
+  it, or renews its reason. Lifting a cap hands the new version to
   `renovate-deps` to test. Its debrief step may output one process task.
 - `roles/renovate-onboarder.yaml`: sets `renovateEnabled` for one repository in
   spigell/my-github.
@@ -61,8 +64,15 @@ Known gaps in `renovate-deps`, which need my-reforge-runner changes:
   by hand makes Renovate ignore that update, which would also hide it after
   the pin is lifted.
 
-Every pin (a packageRule with `allowedVersions` or `enabled: false`, excluding
-standing rules whose description starts with `policy:`) carries
+New repository-specific pins live in the target repository's `renovate.json`.
+Shared `default.json` keeps account-wide rules, policy rules and existing
+legacy pins until they are migrated. An account-wide pin needs explicit
+operator approval. The dependency schedule emits at most one rule task per
+run; other repository/package pairs remain listed as pin candidates.
+
+Every pin in either location (a packageRule with `allowedVersions` or
+`enabled: false`, excluding standing rules whose description starts with
+`policy:`) carries
 its reason in `description`: `<reason>; source: <URL>; review after:
 YYYY-MM-DD`. A pin without that format is due for review.
 
