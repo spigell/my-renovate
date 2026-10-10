@@ -30,7 +30,7 @@
         "pip_requirements", "pip_setup", "pipenv", "pixi", "poetry", "pub",
         "sbt", "setup-cfg", "smithy", "swift"
       ],
-      "matchDepTypes": ["!engines", "!golang", "!packageManager", "!toolchain", "!volta"],
+      "matchJsonata": ["$not(isVulnerabilityAlert = true) and $not(depType in ['engines', 'volta', 'packageManager', 'golang', 'toolchain', 'requires-python']) and $not(depName = 'python')"],
       "matchUpdateTypes": ["patch"],
       "enabled": false
     },
