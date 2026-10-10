@@ -19,7 +19,8 @@
 - The generic roles (`briefer`, `debriefer`, `ci-fixer`, `coder`, `reviewer`) and the `deploy-report` schema live in my-reforge-tasks, not here.
 
 ## Reforge rules
-- Every pin (a packageRule with `allowedVersions` or `enabled: false`) must keep its reason in `description` as `<reason>; source: <URL>; review after: YYYY-MM-DD`. A pin that does not follow this format counts as due for review.
+- The shared preset skips routine patch updates for language packages; app and runtime patches, and security fixes, remain enabled. Rules whose `description` starts with `policy:` are standing policy, not pins.
+- Every pin (a packageRule with `allowedVersions` or `enabled: false`, excluding `policy:` rules) must keep its reason in `description` as `<reason>; source: <URL>; review after: YYYY-MM-DD`. A pin that does not follow this format counts as due for review.
 - Seed sync applies `reforge/` from `main` within about 2 minutes of a merge; do not upsert by hand. See `reforge/README.md`.
 - Seed sync never deletes rows: after removing or renaming a role or schedule, delete the old row by hand with `task-admin`, once no schedule or open task references it.
 - Keep a schedule member's `key` stable: the runner finds the previous run's debrief through it.
