@@ -12,6 +12,7 @@ This skill provides procedural knowledge for maintaining, troubleshooting, and l
 
 ### 1. Core Sources of Truth
 * `renovate.json`: Defines the shared behavior and custom regex managers.
+* `default.json`: Skips routine language package patches while preserving app, runtime, and vulnerability fix updates; `policy:` rules are excluded from pin reviews.
 * `.github/workflows/renovate.yaml`: Controls the scheduled execution, token generation, and runner environment.
 
 ### 2. Custom Regex Managers

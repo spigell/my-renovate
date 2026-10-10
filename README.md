@@ -6,6 +6,9 @@ GitHub account.
 This repository owns the scheduled Renovate workflow and the shared
 `default.json` consumed by the GitHub Action.
 
+The shared preset skips routine patch updates for language packages while
+keeping minor, major, app, runtime, and vulnerability fix updates.
+
 ## Run logs
 
 The job scans mostly private repositories, and the run logs of a public

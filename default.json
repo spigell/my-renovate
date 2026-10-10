@@ -13,10 +13,26 @@
   "prConcurrentLimit": 20,
   "prHourlyLimit": 0,
   "labels": ["dependencies", "renovate"],
+  "vulnerabilityAlerts": { "enabled": true },
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true
+    },
+    {
+      "description": "policy: Skip routine patch updates for language packages; keep minor, major, runtime, app, and security updates",
+      "matchManagers": [
+        "ant", "bazel-module", "bun", "bundler", "cake", "cargo", "cocoapods",
+        "composer", "conan", "cpanfile", "deno", "deps-edn", "gleam", "gomod",
+        "gradle", "haskell-cabal", "homeassistant-manifest", "kotlin-script",
+        "leiningen", "maven", "mix", "npm", "nuget", "ocb", "osgi",
+        "pep621", "pep723", "pip-compile",
+        "pip_requirements", "pip_setup", "pipenv", "pixi", "poetry", "pub",
+        "sbt", "setup-cfg", "smithy", "swift"
+      ],
+      "matchJsonata": ["$not(isVulnerabilityAlert = true) and $not(depType in ['engines', 'volta', 'packageManager', 'golang', 'toolchain', 'requires-python']) and $not(depName = 'python')"],
+      "matchUpdateTypes": ["patch"],
+      "enabled": false
     },
     {
       "matchManagers": ["github-actions"],

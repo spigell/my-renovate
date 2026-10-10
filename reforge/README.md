@@ -61,7 +61,8 @@ Known gaps in `renovate-deps`, which need my-reforge-runner changes:
   by hand makes Renovate ignore that update, which would also hide it after
   the pin is lifted.
 
-Every pin (a packageRule with `allowedVersions` or `enabled: false`) carries
+Every pin (a packageRule with `allowedVersions` or `enabled: false`, excluding
+standing rules whose description starts with `policy:`) carries
 its reason in `description`: `<reason>; source: <URL>; review after:
 YYYY-MM-DD`. A pin without that format is due for review.
 
