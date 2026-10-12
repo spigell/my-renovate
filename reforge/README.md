@@ -87,9 +87,9 @@ registry default model and effort.
 
 - `areas/renovate.yaml`: the `renovate` area. Ideas added with
   `task-admin idea add --area renovate` are refined hourly by the managed
-  `area-renovate-refiner` schedule into draft tasks for the operator. It is a
-  guest area (`repos: []`), so a drafted task may target any repository, such
-  as a pin in a target repository's `renovate.json`.
+  `area-renovate-refiner` schedule into tasks, which are queued at once
+  (`auto_queue: true`). It is a guest area (`repos: []`), so a task may target
+  any repository, such as a pin in a target repository's `renovate.json`.
 
 The generic roles they also use (`briefer`, `debriefer`, `ci-fixer`, `coder`,
 `reviewer`) and the `deploy-report` output schema live in my-reforge-tasks.

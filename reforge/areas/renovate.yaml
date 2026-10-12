@@ -2,9 +2,9 @@
 # dependency updates across spigell repositories, the central Renovate job and
 # its shared config. Ideas come in through `task-admin idea add --area renovate`
 # or POST /v1/ideas; the managed area-renovate-refiner schedule turns them into
-# draft tasks for the operator. A guest area (repos: []): a task may target any
-# repository, since a Renovate change often lands in a target repository's
-# renovate.json or its dependency PRs. The renovate-* schedules stay outside it.
+# tasks that are queued at once (auto_queue). A guest area (repos: []): a task
+# may target any repository, since a Renovate change often lands in a target
+# repository's renovate.json or its dependency PRs. The renovate-* schedules stay outside it.
 id: renovate
 title: Renovate
 description: Dependency updates for spigell repositories through the central Renovate job (my-renovate), its shared default.json and presets, and each repository's renovate.json.
@@ -39,7 +39,7 @@ context:
   mcp_servers:
     - github-mcp
     - tavily-mcp
-auto_queue: false
+auto_queue: true
 refiner:
   cron: "35 * * * *"
   timezone: UTC
