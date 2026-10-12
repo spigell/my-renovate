@@ -27,7 +27,7 @@ follow-up tasks (also role `briefer`).
   reason). The brief skips that repository's PRs until the fix lands.
 
 The standard ci-fix task (key `ci-fix:<owner/repo>`, `ci-fixer` then
-`reviewer`) is defined once in the `reforge-task-author` skill of
+`reviewer`) is defined once in the `reforge-task-guider` skill of
 my-reforge-tasks. A schedule enables it in its details instead of copying the
 payload. Workers read that skill live from
 `/spigell-reforge-ai/reforge/tasks/skills`, so a change there needs no seed
@@ -75,6 +75,21 @@ Every pin in either location (a packageRule with `allowedVersions` or
 `policy:`) carries
 its reason in `description`: `<reason>; source: <URL>; review after:
 YYYY-MM-DD`. A pin without that format is due for review.
+
+Agents follow the default strategy in the `reforge-task-guider` skill: every
+step names agent tiers, with `claude-secondary` alone first, then a shared
+tier, then `claude-main` as the only fallback. Briefs and debriefs use
+agy then codex (`renovate-deps` uses codex then agy for its cross-repository
+grouping and pin decisions), coders codex then agy, and reviewers codex then
+claude-main. The secret-sync deploy uses agy then codex with no fallback. The
+Renovate roles carry no `agents` allowlist, and steps keep each agent's
+registry default model and effort.
+
+- `areas/renovate.yaml`: the `renovate` area. Ideas added with
+  `task-admin idea add --area renovate` are refined hourly by the managed
+  `area-renovate-refiner` schedule into draft tasks for the operator. It is a
+  guest area (`repos: []`), so a drafted task may target any repository, such
+  as a pin in a target repository's `renovate.json`.
 
 The generic roles they also use (`briefer`, `debriefer`, `ci-fixer`, `coder`,
 `reviewer`) and the `deploy-report` output schema live in my-reforge-tasks.

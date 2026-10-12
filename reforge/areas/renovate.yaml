@@ -1,0 +1,74 @@
+# The renovate area (my-reforge-tasks docs/proposals/areas.md): ideas about
+# dependency updates across spigell repositories, the central Renovate job and
+# its shared config. Ideas come in through `task-admin idea add --area renovate`
+# or POST /v1/ideas; the managed area-renovate-refiner schedule turns them into
+# draft tasks for the operator. A guest area (repos: []): a task may target any
+# repository, since a Renovate change often lands in a target repository's
+# renovate.json or its dependency PRs. The renovate-* schedules stay outside it.
+id: renovate
+title: Renovate
+description: Dependency updates for spigell repositories through the central Renovate job (my-renovate), its shared default.json and presets, and each repository's renovate.json.
+enabled: true
+repos: []
+context:
+  notes: |
+    default.json and presets/ in spigell/my-renovate are the shared config; repository-specific pins go in the target repository's renovate.json without matchRepositories. An account-wide pin in default.json needs explicit operator approval.
+    Every pin (a packageRule with allowedVersions or enabled: false, except rules whose description starts with "policy:") keeps "<reason>; source: <URL>; review after: YYYY-MM-DD" in its description.
+    Validate a changed config with `npm exec --yes --package renovate -- renovate-config-validator --strict <file>` in Done when.
+    Work on an open Renovate PR uses role renovate-updater on the PR head branch with pull_request_number set; the renovate-deps schedule already takes majors and red minor/patch PRs, so draft one only for what it does not cover.
+    Nothing a drafted task does may apply a Pulumi stack, change the RENOVATE_REPOSITORIES secret, or raise the scheduled LOG_LEVEL of the Renovate workflow. Say so in Stop if when a change needs one.
+    A change to reforge/ in spigell/my-renovate reaches the registry through seed sync after merge; never upsert it by hand.
+  docs:
+    - AGENTS.md
+    - reforge/README.md
+  agents:
+    - codex
+    - agy
+    - claude-main
+    - claude-secondary
+  roles:
+    - coder
+    - reviewer
+    - ci-fixer
+    - renovate-updater
+    - renovate-pin-reviewer
+  skill_sets:
+    - git
+    - renovate
+    - reforge
+  mcp_servers:
+    - github-mcp
+    - tavily-mcp
+auto_queue: false
+refiner:
+  cron: "35 * * * *"
+  timezone: UTC
+  template:
+    steps:
+      - id: refine
+        role: refiner
+        context:
+          - ideas
+        output:
+          params:
+            max_ideas: 5
+            max_tasks_per_idea: 3
+    agents:
+      - strategy: any
+        ids: [claude-secondary]
+      - strategy: ordered
+        ids: [agy, codex]
+      - strategy: any
+        ids: [claude-main]
+    # reforge-task-guider: payload rules and the default agent tiers.
+    skill_sets:
+      - reforge
+      - renovate
+    kind: chore
+    priority: low
+    goal: Refine open renovate ideas into draft tasks, questions, deferrals or drop proposals
+    details: |
+      Context: the leased ideas of the renovate area are in the context file, with the area notes, its agents, roles, skill sets and MCP servers, and the duplicate list.
+      For each leased idea decide draft, ask, defer or propose_drop. Read the code, renovate.json files and open Renovate PRs with github-mcp only as far as needed to scope a task; do not change code or queue anything.
+      Draft only complete, runnable tasks that follow the area notes, one task per repository. Ask the operator one concrete question when the idea leaves a decision open. Defer when the idea depends on work that has not landed yet, and name it.
+      Keep the summary under 3500 characters.

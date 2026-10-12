@@ -1,7 +1,6 @@
 id: renovate-pin-reviewer
 name: Renovate pin reviewer
 output: changes
-agents: [codex]
 mcp_servers: [github-mcp, tavily-mcp]
 skill_sets: [renovate, git]
 instructions:

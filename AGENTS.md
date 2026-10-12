@@ -16,6 +16,8 @@
 - `reforge/schedules/renovate-deps.yaml`: runs every 3 hours, 20 minutes after the Renovate job. It fixes, tests, and merges the Renovate PRs that automerge does not take: majors (a pilot repository first, then the rest) and minor or patch PRs with red checks. Its debrief may add one rule task that pins a package in the failed repository's `renovate.json`, and one standard ci-fix task when an update stops on a check that already fails on the repository's default branch; the brief then skips that repository's PRs until the fix lands.
 - `reforge/schedules/renovate-pins.yaml`: runs weekly. It reviews one due pin in a target repository's `renovate.json` or in shared `default.json`, and lifts it, raises it, or renews its reason. When a cap is lifted, `renovate-deps` tests the new version. Its debrief may output one process task.
 - `reforge/roles/`: `renovate-onboarder` (sets `renovateEnabled` in spigell/my-github), `renovate-applier` (applies the my-github stack for `RENOVATE_REPOSITORIES` secret-only changes), `renovate-pin-reviewer` (edits one pin rule from upstream evidence), and `renovate-updater` (the coder of `renovate-deps` update tasks: it ends as Updated, Nothing to change, or Stopped with a `Stopped: <reason>; evidence: ...; upstream: ...` summary line and no `no_changes`, so a blocked update fails instead of merging).
+- `reforge/areas/renovate.yaml`: the `renovate` guest area (`repos: []`). Its managed `area-renovate-refiner` schedule refines ideas into draft tasks in any repository; the schedules above stay outside it.
+- Every step uses agent tiers as the `reforge-task-guider` skill says: `claude-secondary` first, a shared tier, `claude-main` as the only fallback (none for deploys). Roles carry no `agents` allowlist.
 - The generic roles (`briefer`, `debriefer`, `ci-fixer`, `coder`, `reviewer`) and the `deploy-report` schema live in my-reforge-tasks, not here.
 
 ## Reforge rules
@@ -25,4 +27,4 @@
 - Seed sync applies `reforge/` from `main` within about 2 minutes of a merge; do not upsert by hand. See `reforge/README.md`.
 - Seed sync never deletes rows: after removing or renaming a role or schedule, delete the old row by hand with `task-admin`, once no schedule or open task references it.
 - Keep a schedule member's `key` stable: the runner finds the previous run's debrief through it.
-- The standard ci-fix task is defined once, in the `reforge-task-author` skill of my-reforge-tasks ("Standard ci-fix task", key `ci-fix:<owner/repo>`). A schedule enables it in its details instead of copying the payload; workers read that skill live from `/spigell-reforge-ai/reforge/tasks/skills`.
+- The standard ci-fix task is defined once, in the `reforge-task-guider` skill of my-reforge-tasks ("Standard ci-fix task", key `ci-fix:<owner/repo>`). A schedule enables it in its details instead of copying the payload; workers read that skill live from `/spigell-reforge-ai/reforge/tasks/skills`.

@@ -1,7 +1,6 @@
 id: renovate-applier
 name: Renovate secret applier
 output: deploy-report
-agents: [agy]
 mcp_servers: [pulumi-deployer]
 skill_sets: [pulumi, git]
 instructions:
