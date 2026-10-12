@@ -3,7 +3,6 @@
 id: renovate-updater
 name: Renovate updater
 output: changes
-agents: [codex]
 skill_sets: [renovate, git]
 error_outcomes:
   - id: upstream_blocked

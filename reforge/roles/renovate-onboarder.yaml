@@ -1,7 +1,6 @@
 id: renovate-onboarder
 name: Renovate onboarder
 output: changes
-agents: [agy]
 mcp_servers: []
 skill_sets: [git]
 instructions:

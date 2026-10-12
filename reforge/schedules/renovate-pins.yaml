@@ -15,15 +15,11 @@ template:
       steps:
       - id: brief
         role: briefer
-        agents:
-        - agy
         output:
           params:
             max_tasks: 1
       - id: debrief
         role: briefer
-        agents:
-        - agy
         output:
           params:
             max_tasks: 1
@@ -32,6 +28,13 @@ template:
           - brief
           until: terminal
           timeout_hours: 24
+      agents:
+      - strategy: any
+        ids: [claude-secondary]
+      - strategy: ordered
+        ids: [agy, codex]
+      - strategy: any
+        ids: [claude-main]
       skill_sets:
       - renovate
       kind: chore
@@ -52,10 +55,9 @@ template:
           branch: reforge/chore/renovate-pin-review-<package slug>-<pin file slug>-<index>
           steps:
             - role: renovate-pin-reviewer
-              agents: [codex]
-              config: { codex: { reasoning_effort: medium } }
+              agents: [{strategy: any, ids: [claude-secondary]}, {strategy: ordered, ids: [codex, agy]}, {strategy: any, ids: [claude-main]}]
             - role: reviewer
-              agents: [claude-main, codex]
+              agents: [{strategy: any, ids: [claude-secondary]}, {strategy: ordered, ids: [codex, claude-main]}]
           skill_sets: [renovate]
           kind: chore
           workspace: isolated
@@ -74,10 +76,9 @@ template:
           branch: spigell/chore/<short-slug>
           steps:
             - role: coder
-              agents: [codex]
-              config: { codex: { reasoning_effort: medium } }
+              agents: [{strategy: any, ids: [claude-secondary]}, {strategy: ordered, ids: [codex, agy]}, {strategy: any, ids: [claude-main]}]
             - role: reviewer
-              agents: [claude-main, codex]
+              agents: [{strategy: any, ids: [claude-secondary]}, {strategy: ordered, ids: [codex, claude-main]}]
           skill_sets: [renovate]
           kind: chore
           workspace: isolated
