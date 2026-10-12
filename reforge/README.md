@@ -25,6 +25,19 @@ follow-up tasks (also role `briefer`).
   check that already fails on the
   repository's default branch (`needs_operator` with a proven pre-existing
   reason). The brief skips that repository's PRs until the fix lands.
+  The brief and debrief carry a per-PR failed-updater ledger in their summaries:
+  PR identity, head SHA before the updater, terminal outcome and time, and
+  relevant role error evidence. A failed or blocked updater stays suppressed
+  across runs, even after intake's two-hour dedupe expires. A merged CI fix
+  permits one retry only for that same repository's updater whose
+  `role_error_evidence.reason` starts `pre-existing on <default branch>:` and
+  contains the proven failure; the brief verifies the merge happened after
+  that failure and checks the fix status again. An unrelated CI fix,
+  `upstream_blocked`, or a blocked reviewer does not qualify. A new head SHA
+  permits one retry only when GitHub commit history proves a new
+  Renovate-authored commit after the recorded SHA; a worker edit or base merge
+  does not qualify. The brief checks applicable pins and the CI-fix waiting
+  list again before either retry. Missing retry evidence keeps the PR skipped.
 
 The standard ci-fix task (key `ci-fix:<owner/repo>`, `ci-fixer` then
 `reviewer`) is defined once in the `reforge-task-guider` skill of
