@@ -18,7 +18,8 @@ follow-up tasks (also role `briefer`).
 - `schedules/renovate-deps.yaml`: every 3 hours, 20 minutes after the Renovate
   job. Its brief step outputs update tasks for majors, grouped by package and
   major across repositories (a pilot repository first, the rest after it
-  merged), and for minor/patch PRs with red checks. Each task fixes, tests and
+  merged), and for minor/patch PRs with red checks or green ones still open
+  more than 24 hours after creation. Each task fixes, tests and
   merges the Renovate PR. Its debrief step reports and may output one rule
   task that pins a package in the failed repository's `renovate.json` when it
   cannot be upgraded yet, and one standard ci-fix task when an update finds a
