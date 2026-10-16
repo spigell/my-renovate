@@ -37,13 +37,6 @@ schedules:
         - ci-fixer
         - renovate-updater
         - renovate-pin-reviewer
-      skill_sets:
-        - git
-        - renovate
-        - reforge
-      mcp_servers:
-        - github-mcp
-        - tavily-mcp
     template:
       repo: spigell/my-renovate
       branch: main
