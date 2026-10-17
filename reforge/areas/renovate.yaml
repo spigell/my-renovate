@@ -22,9 +22,9 @@ schedules:
     cron: "35 * * * *"
     timezone: UTC
     auto_queue: true
+    enabled: false
     allow:
-      repos:
-        - "*"
+      repos: []
       agents:
         - codex
         - agy
