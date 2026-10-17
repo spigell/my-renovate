@@ -8,7 +8,6 @@
 id: renovate
 title: Renovate
 description: Dependency updates for spigell repositories through the central Renovate job (my-renovate), its shared default.json and presets, and each repository's renovate.json.
-enabled: true
 context:
   notes: |
     default.json and presets/ in spigell/my-renovate are the shared config; repository-specific pins go in the target repository's renovate.json without matchRepositories. An account-wide pin in default.json needs explicit operator approval.
