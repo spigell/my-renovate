@@ -1,8 +1,8 @@
 # The renovate area (my-reforge-tasks docs/proposals/areas.md): ideas about
 # dependency updates across spigell repositories, the central Renovate job and
 # its shared config. Ideas come in through `task-admin idea add --area renovate`
-# or POST /v1/ideas; the managed area-renovate-refiner schedule turns them into
-# tasks that are queued at once (auto_queue). A guest area (repos: []): a task
+# or POST /v1/ideas; the managed area-renovate-idea-refiner schedule turns them
+# into tasks that are queued at once (auto_queue). A guest area (repos: []): a task
 # may target any repository, since a Renovate change often lands in a target
 # repository's renovate.json or its dependency PRs. The renovate-* schedules stay outside it.
 id: renovate
@@ -18,7 +18,7 @@ context:
     A change to reforge/ in spigell/my-renovate reaches the registry through seed sync after merge; never upsert it by hand.
     Read first: AGENTS.md, reforge/README.md
 schedules:
-  - id: refiner
+  - id: idea-refiner
     cron: "35 * * * *"
     timezone: UTC
     auto_queue: true
@@ -43,7 +43,7 @@ schedules:
       delivery: none
       steps:
         - id: refine
-          role: refiner
+          role: idea-refiner
           context:
             - ideas
           output:
