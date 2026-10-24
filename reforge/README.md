@@ -12,10 +12,12 @@ PRs that need code (majors, red minor and patch updates) and reviews their due
 repository.
 
 - `areas/renovate.yaml`: the `renovate` area, scoped to this repository's
-  shared config (`default.json`, `presets/`). A dependency steward never adds
-  annotations, custom managers or regexes to its own repositories; when its
-  work meets a version Renovate misses, it sends this area an idea asking for a
-  shared preset. Ideas from other areas wait for the operator's Accept, so the
+  shared config (`default.json`, `presets/`). A dependency steward adopts only
+  new dependencies: a built-in manager needs nothing, a form an opt-in preset
+  already reads gets a `# renovate:` comment and the preset in `extends`, and
+  any other form comes here as an idea asking for a shared, annotation-driven
+  preset. Stewards never write custom managers or regexes in their own
+  repositories. Ideas from other areas wait for the operator's Accept, so the
   operator decides what Renovate tracks; the `idea-refiner` entry (shipped
   disabled) turns accepted ideas into preset tasks on this repository.
 - `roles/renovate-pin-reviewer.yaml`: reviews one pin from upstream evidence

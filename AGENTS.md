@@ -12,7 +12,7 @@
 
 ## Reforge area and roles
 - This repository runs no reforge schedules of its own. Each area looks after its own repositories' dependencies (the reforge area's `deps-steward` entry, my-reforge-tasks `docs/area-deps.md`) and runs the roles below.
-- `reforge/areas/renovate.yaml`: the `renovate` area, scoped to this repository's shared config (`default.json`, `presets/`). Its `idea-refiner` entry turns accepted ideas into shared preset tasks. A dependency steward asks it for a preset when its work meets a version Renovate misses; it never adds annotations, custom managers or regexes to its own repositories. Ideas from other areas wait for the operator's Accept.
+- `reforge/areas/renovate.yaml`: the `renovate` area, scoped to this repository's shared config (`default.json`, `presets/`). Its `idea-refiner` entry turns accepted ideas into shared preset tasks. A dependency steward adopts only new dependencies: built-in managers need nothing, a form an opt-in preset already reads gets a `# renovate:` comment and the preset in `extends`, and any other form comes here as an idea for a shared, annotation-driven preset; stewards never write custom managers or regexes in their own repositories. Ideas from other areas wait for the operator's Accept.
 - `reforge/roles/`: `renovate-pin-reviewer` (edits one pin rule from upstream evidence) and `renovate-updater` (the coder of a Renovate update task: it ends as Updated, Nothing to change, or a declared error such as `upstream_blocked`).
 - The generic roles (`idea-refiner`, `coder`, `reviewer`) live in my-reforge-tasks, not here.
 

@@ -2,8 +2,9 @@
 # Renovate config in this repository, default.json and presets/. Restored on
 # 2026-10-24 so the areas' dependency stewards (the reforge area's
 # deps-steward, my-reforge-tasks docs/area-deps.md) can ask for a shared preset
-# when their work meets a version Renovate misses: they never add annotations,
-# custom managers or regexes to their own repositories.
+# when a new dependency's version form is one no preset reads. Stewards adopt
+# new dependencies with an annotation and an extends entry; they never write a
+# custom manager or regex in their own repositories.
 #
 # No lane lists a sender in ideas.accept_from, so every idea from another area
 # waits for the operator's Accept: the operator decides what Renovate tracks.
@@ -16,8 +17,9 @@ description: The shared Renovate config of spigell/my-renovate (default.json and
 context:
   notes: |
     Scope is spigell/my-renovate only: default.json and presets/. A repository's own renovate.json belongs to that repository's area and its steward; never draft work there.
-    A new preset goes in presets/ as its own file, with a description that names what it tracks, so a repository opts in through extends. A rule or manager added to default.json reaches every repository: draft it only when the accepted idea asks for that, and say so in the task's Context.
-    A custom manager matches the narrowest file pattern and regex that covers the places the idea lists, sets datasource and versioning explicitly, and is checked against those places in Done when.
+    Presets in presets/ are opt-in: a repository extends `github>spigell/my-renovate//presets/<name>`. Extend an existing preset when it fits the version form the idea names, else add a preset file with a description that names what it reads. A rule or manager added to default.json reaches every repository: draft it only when the accepted idea asks for that, and say so in the task's Context.
+    A custom manager is annotation-driven like presets/workflow-managers.json and presets/dockerfile-managers.json: it reads `# renovate: datasource=<datasource> depName=<name>` (optional packageName and versioning) beside the version, so the requesting area adopts each place with a comment and an extends entry, never a regex of its own. Use the narrowest file pattern that covers the form, and in Done when show the matchStrings against the lines the idea quotes, annotated.
+    This area never edits another repository: the requesting area's steward adopts its dependency once the preset is on main. The task's Report names the extends entry and the exact comment layout the preset reads, for that adoption.
     Every pin (a packageRule with allowedVersions or enabled: false, except rules whose description starts with "policy:") keeps "<reason>; source: <URL>; review after: YYYY-MM-DD" in its description. An account-wide pin in default.json needs explicit operator approval.
     Done when runs `npm exec --yes --package renovate -- renovate-config-validator --strict <file>` on every changed config file.
     Nothing a drafted task does may apply a Pulumi stack, change the RENOVATE_REPOSITORIES secret, or raise the scheduled LOG_LEVEL of the Renovate workflow. Say so in Stop if when a change needs one.
