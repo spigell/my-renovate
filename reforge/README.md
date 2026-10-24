@@ -8,6 +8,12 @@ The reforge schedules that used them (`renovate-onboarding`, `renovate-deps`,
 operator's request; their registry rows were deleted by hand. Renovate itself
 keeps running as the central job in this repository.
 
+The reforge area's `deps-steward` entry (spigell/my-reforge-tasks
+`docs/area-deps.md`) now runs `renovate-updater` and `renovate-pin-reviewer`
+for the reforge repositories: it lands their Renovate PRs that need code
+(majors, red minor and patch updates) and reviews their due `renovate.json`
+pins.
+
 - `roles/renovate-onboarder.yaml`: sets `renovateEnabled` for one repository in
   spigell/my-github.
 - `roles/renovate-applier.yaml`: applies the my-github stack when the only
