@@ -18,8 +18,8 @@ repository.
   any other form comes here as an idea asking for a shared, annotation-driven
   preset. Stewards never write custom managers or regexes in their own
   repositories. Ideas from other areas wait for the operator's Accept, so the
-  operator decides what Renovate tracks; the `idea-refiner` entry (shipped
-  disabled) turns accepted ideas into preset tasks on this repository.
+  operator decides what Renovate tracks; the `idea-refiner` entry
+  (every 10 minutes) turns accepted ideas into preset tasks on this repository.
 - `roles/renovate-pin-reviewer.yaml`: reviews one pin from upstream evidence
   and edits only that rule.
 - `roles/renovate-updater.yaml`: the coder of a Renovate update task. It ends

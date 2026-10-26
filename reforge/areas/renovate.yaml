@@ -9,8 +9,8 @@
 # No lane lists a sender in ideas.accept_from, so every idea from another area
 # waits for the operator's Accept: the operator decides what Renovate tracks.
 # The operator's own ideas (`task-admin message send --to renovate`) open at
-# once. Minimal variant: one idea-refiner entry, shipped disabled; enable it
-# with `task-admin area set --area renovate --schedule idea-refiner --enabled true`.
+# once. Minimal variant: one idea-refiner entry, enabled; pause it with
+# `task-admin area set --area renovate --schedule idea-refiner --enabled false`.
 id: renovate
 title: Renovate
 description: The shared Renovate config of spigell/my-renovate (default.json and presets/) that every spigell repository extends, changed on request from the areas' dependency stewards or the operator.
@@ -30,7 +30,7 @@ schedules:
     # Every 10 minutes: a fire with no open ideas creates no task (skipped_no_ideas).
     cron: "*/10 * * * *"
     timezone: UTC
-    enabled: false
+    enabled: true
     auto_queue: true
     allow:
       repos:
