@@ -27,8 +27,8 @@ context:
     Read first: AGENTS.md, reforge/README.md
 schedules:
   - id: idea-refiner
-    # Hourly: a fire with no open ideas creates no task (skipped_no_ideas).
-    cron: "35 * * * *"
+    # Every 10 minutes: a fire with no open ideas creates no task (skipped_no_ideas).
+    cron: "*/10 * * * *"
     timezone: UTC
     enabled: false
     auto_queue: true
