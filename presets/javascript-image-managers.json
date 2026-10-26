@@ -6,7 +6,7 @@
       "customType": "regex",
       "managerFilePatterns": ["/(^|/)scripts/build-runtime-images\\.mjs$/"],
       "matchStrings": [
-        "(?:^|\\n)[ \\t]*// renovate: datasource=(?<datasource>docker) depName=(?<depName>[^\\s]+)(?: packageName=(?<packageName>[^\\s]+))? versioning=(?<versioning>docker)[ \\t]*\\r?\\n[ \\t]*['\"][^:\\s'\"@]+:(?<currentValue>[^@\\s'\"]+)@(?<currentDigest>sha256:[a-f0-9]{64})['\"]"
+        "(?:^|\\n)[ \\t]*// renovate: datasource=(?<datasource>docker) depName=(?<depName>[^\\s]+)(?: packageName=(?<packageName>[^\\s]+))? versioning=(?<versioning>docker)[ \\t]*\\r?\\n[ \\t]*(?:(?:[A-Za-z_$][\\w$]*[ \\t]*:[ \\t]*|(?:const|let|var)[ \\t]+[A-Za-z_$][\\w$]*[ \\t]*=[ \\t]*))?['\"][^:\\s'\"@]+:(?<currentValue>[^@\\s'\"]+)@(?<currentDigest>sha256:[a-f0-9]{64})['\"]"
       ]
     }
   ]
