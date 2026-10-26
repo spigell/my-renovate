@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "customManagers": [
+    {
+      "description": "Annotated JavaScript image string literals",
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)scripts/build-runtime-images\\.mjs$/"],
+      "matchStrings": [
+        "(?:^|\\n)[ \\t]*// renovate: datasource=(?<datasource>docker) depName=(?<depName>[^\\s]+)(?: packageName=(?<packageName>[^\\s]+))? versioning=(?<versioning>docker)[ \\t]*\\r?\\n[ \\t]*['\"][^:\\s'\"@]+:(?<currentValue>[^@\\s'\"]+)@(?<currentDigest>sha256:[a-f0-9]{64})['\"]"
+      ]
+    }
+  ]
+}
