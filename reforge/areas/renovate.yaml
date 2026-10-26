@@ -54,6 +54,12 @@ schedules:
         - id: refine
           role: idea-refiner
           context: [decision_memory]
+          # The task shapes it may draft, merged over the idea-refiner role's
+          # templates (my-reforge-tasks docs/output-templates.md): allow.roles
+          # has no researcher, so the role's research variant is removed.
+          templates:
+            task:
+              research: null
           output:
             params:
               max_ideas: 3
