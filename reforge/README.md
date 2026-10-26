@@ -1,23 +1,37 @@
 # Reforge definitions for Renovate
 
-The Renovate-specific reforge roles. This directory is the source of truth; the
-reforge task registry holds the live copies.
+The `renovate` area and the Renovate-specific reforge roles. This directory is
+the source of truth; the reforge task registry holds the live copies.
 
-The reforge schedules that used them (`renovate-onboarding`, `renovate-deps`,
-`renovate-pins`) and the `renovate` area were removed on 2026-10-20 at the
-operator's request; their registry rows were deleted by hand. Renovate itself
-keeps running as the central job in this repository.
+This repository runs no reforge schedules of its own: each area looks after its
+own repositories' dependencies. The reforge area's `deps-steward` entry
+(spigell/my-reforge-tasks `docs/area-deps.md`) runs `renovate-updater` and
+`renovate-pin-reviewer` for the reforge repositories: it lands their Renovate
+PRs that need code (majors, red minor and patch updates) and reviews their due
+`renovate.json` pins. Renovate itself keeps running as the central job in this
+repository.
 
-- `roles/renovate-onboarder.yaml`: sets `renovateEnabled` for one repository in
-  spigell/my-github.
-- `roles/renovate-applier.yaml`: applies the my-github stack when the only
-  change is the `RENOVATE_REPOSITORIES` secret.
+- `areas/renovate.yaml`: the `renovate` area, scoped to this repository's
+  shared config (`default.json`, `presets/`). A dependency steward adopts only
+  new dependencies: a built-in manager needs nothing, a form an opt-in preset
+  already reads gets a `# renovate:` comment and the preset in `extends`, and
+  any other form comes here as an idea asking for a shared, annotation-driven
+  preset. Stewards never write custom managers or regexes in their own
+  repositories. Ideas from other areas wait for the operator's Accept, so the
+  operator decides what Renovate tracks; the `idea-refiner` entry (shipped
+  disabled) turns accepted ideas into preset tasks on this repository.
 - `roles/renovate-pin-reviewer.yaml`: reviews one pin from upstream evidence
   and edits only that rule.
 - `roles/renovate-updater.yaml`: the coder of a Renovate update task. It ends
   as Updated (commit), Nothing to change (`no_changes`, the PR merges as it
   is), or a declared error (`upstream_blocked`, `needs_operator`,
   `external_unavailable`).
+
+The `renovate-onboarding`, `renovate-deps` and `renovate-pins` schedules and
+the old guest `renovate` area were removed on 2026-10-20 (#69); the area came
+back on 2026-10-24 scoped to this repository. The `renovate-onboarder` and
+`renovate-applier` roles, used only by the onboarding schedule, were removed
+with this change.
 
 New repository-specific pins live in the target repository's `renovate.json`.
 Shared `default.json` keeps account-wide rules, policy rules and existing

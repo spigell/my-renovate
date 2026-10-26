@@ -1,0 +1,73 @@
+# The renovate area (my-reforge-tasks docs/proposals/areas.md): the shared
+# Renovate config in this repository, default.json and presets/. Restored on
+# 2026-10-24 so the areas' dependency stewards (the reforge area's
+# deps-steward, my-reforge-tasks docs/area-deps.md) can ask for a shared preset
+# when a new dependency's version form is one no preset reads. Stewards adopt
+# new dependencies with an annotation and an extends entry; they never write a
+# custom manager or regex in their own repositories.
+#
+# No lane lists a sender in ideas.accept_from, so every idea from another area
+# waits for the operator's Accept: the operator decides what Renovate tracks.
+# The operator's own ideas (`task-admin message send --to renovate`) open at
+# once. Minimal variant: one idea-refiner entry, shipped disabled; enable it
+# with `task-admin area set --area renovate --schedule idea-refiner --enabled true`.
+id: renovate
+title: Renovate
+description: The shared Renovate config of spigell/my-renovate (default.json and presets/) that every spigell repository extends, changed on request from the areas' dependency stewards or the operator.
+context:
+  notes: |
+    Scope is spigell/my-renovate only: default.json and presets/. A repository's own renovate.json belongs to that repository's area and its steward; never draft work there.
+    Presets in presets/ are opt-in: a repository extends `github>spigell/my-renovate//presets/<name>`. Extend an existing preset when it fits the version form the idea names, else add a preset file with a description that names what it reads. A rule or manager added to default.json reaches every repository: draft it only when the accepted idea asks for that, and say so in the task's Context.
+    A custom manager is annotation-driven like presets/workflow-managers.json and presets/dockerfile-managers.json: it reads `# renovate: datasource=<datasource> depName=<name>` (optional packageName and versioning) beside the version, so the requesting area adopts each place with a comment and an extends entry, never a regex of its own. Use the narrowest file pattern that covers the form, and in Done when show the matchStrings against the lines the idea quotes, annotated.
+    This area never edits another repository: the requesting area's steward adopts its dependency once the preset is on main. The task's Report names the extends entry and the exact comment layout the preset reads, for that adoption.
+    Every pin (a packageRule with allowedVersions or enabled: false, except rules whose description starts with "policy:") keeps "<reason>; source: <URL>; review after: YYYY-MM-DD" in its description. An account-wide pin in default.json needs explicit operator approval.
+    Done when runs `npm exec --yes --package renovate -- renovate-config-validator --strict <file>` on every changed config file.
+    Nothing a drafted task does may apply a Pulumi stack, change the RENOVATE_REPOSITORIES secret, or raise the scheduled LOG_LEVEL of the Renovate workflow. Say so in Stop if when a change needs one.
+    A change to reforge/ in spigell/my-renovate reaches the registry through seed sync after merge; never upsert it by hand.
+    Read first: AGENTS.md, reforge/README.md
+schedules:
+  - id: idea-refiner
+    # Every 10 minutes: a fire with no open ideas creates no task (skipped_no_ideas).
+    cron: "*/10 * * * *"
+    timezone: UTC
+    enabled: false
+    auto_queue: true
+    allow:
+      repos:
+        - spigell/my-renovate
+      agents:
+        - codex
+        - agy
+        - claude-main
+        - claude-secondary
+      roles:
+        - coder
+        - reviewer
+    template:
+      repo: spigell/my-renovate
+      branch: main
+      workspace: isolated
+      delivery: none
+      steps:
+        # The idea-refiner role carries its ideas context and the refining
+        # procedure.
+        - id: refine
+          role: idea-refiner
+          context: [decision_memory]
+          # The task shapes it may draft, merged over the idea-refiner role's
+          # templates (my-reforge-tasks docs/output-templates.md): allow.roles
+          # has no researcher, so the role's research variant is removed.
+          templates:
+            task:
+              research: null
+          output:
+            params:
+              max_ideas: 3
+              max_tasks_per_idea: 1
+      agents: {preset: default}
+      skill_sets:
+        - reforge
+        - renovate
+      kind: chore
+      priority: low
+      goal: Refine open renovate ideas into shared preset tasks or questions
