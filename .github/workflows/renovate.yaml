@@ -36,7 +36,7 @@ jobs:
           app-id: ${{ secrets.RENOVATE_APP_ID }}
           private-key: ${{ secrets.RENOVATE_PRIVATE_KEY }}
       - name: Self-hosted Renovate
-        uses: renovatebot/github-action@v46.3.12
+        uses: renovatebot/github-action@v46.3.13
         with:
           configurationFile: default.json
           renovate-version: 43.222.0
