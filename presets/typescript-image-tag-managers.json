@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "customManagers": [
+    {
+      "description": "Annotated Docker image tags in TypeScript Kubernetes addon sources",
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)src/kubernetes/addons/.+\\.ts$/"],
+      "matchStrings": [
+        "(?:^|\\n)[ \\t]*// renovate: datasource=(?<datasource>[^\\s]+) depName=(?<depName>[^\\s]+)(?: packageName=(?<packageName>[^\\s]+))?(?: versioning=(?<versioning>[^\\s]+))?[ \\t]*\\r?\\n[ \\t]*tag[ \\t]*:[ \\t]*['\"](?<currentValue>[^@\\s'\"]+)['\"]"
+      ]
+    }
+  ]
+}
