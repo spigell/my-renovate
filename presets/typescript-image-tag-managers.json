@@ -2,11 +2,12 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "customManagers": [
     {
-      "description": "Annotated Docker image tags in TypeScript Kubernetes addon sources",
+      "description": "Annotated Docker image tag: values and annotated image: strings with an optional digest in TypeScript Kubernetes addon sources",
       "customType": "regex",
       "managerFilePatterns": ["/(^|/)src/kubernetes/addons/.+\\.ts$/"],
       "matchStrings": [
-        "(?:^|\\n)[ \\t]*// renovate: datasource=(?<datasource>[^\\s]+) depName=(?<depName>[^\\s]+)(?: packageName=(?<packageName>[^\\s]+))?(?: versioning=(?<versioning>[^\\s]+))?[ \\t]*\\r?\\n[ \\t]*tag[ \\t]*:[ \\t]*['\"](?<currentValue>[^@\\s'\"]+)['\"]"
+        "(?:^|\\n)[ \\t]*// renovate: datasource=(?<datasource>[^\\s]+) depName=(?<depName>[^\\s]+)(?: packageName=(?<packageName>[^\\s]+))?(?: versioning=(?<versioning>[^\\s]+))?[ \\t]*\\r?\\n[ \\t]*tag[ \\t]*:[ \\t]*['\"](?<currentValue>[^@\\s'\"]+)['\"]",
+        "(?:^|\\n)[ \\t]*// renovate: datasource=(?<datasource>[^\\s]+) depName=(?<depName>[^\\s]+)(?: packageName=(?<packageName>[^\\s]+))?(?: versioning=(?<versioning>[^\\s]+))?[ \\t]*\\r?\\n[ \\t]*image[ \\t]*:[ \\t]*['\"][^'\"\\s@]+:(?<currentValue>[^@\\s'\":/]+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?['\"]"
       ]
     }
   ]
