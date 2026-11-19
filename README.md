@@ -8,6 +8,7 @@ This repository owns the scheduled Renovate workflow and the shared
 
 The shared preset skips routine patch updates for language packages while
 keeping minor, major, app, runtime, and vulnerability fix updates.
+It labels Dependency Dashboard issues `dependency-dashboard`.
 
 ## Run logs
 
