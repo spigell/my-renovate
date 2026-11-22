@@ -6,7 +6,8 @@
 ## Repository scope
 - This repository owns the central Renovate GitHub Action workflow for the `spigell` account.
 - `renovate.json` is the source of truth for shared Renovate behavior used by the scheduled runner.
-- `.github/workflows/renovate.yaml` is the source of truth for the central Renovate execution flow and GitHub App token wiring.
+- `.github/workflows/renovate.yaml` is the source of truth for the central Renovate execution flow and GitHub App token wiring. Its `renovate-version` is the only Renovate version pin.
+- Validate config changes with `npm run validate` (`scripts/validate-config.sh`), which runs the strict validator at that pinned version. In another repository, pipe the script from `main` (see README). Never validate with an unpinned or self-chosen Renovate version, and bump the runner version and migrate the config in the same change.
 - Run logs are written for a public repository: the job scans mostly private repositories, so scheduled runs log at `warn` and `.github/workflows/delete-renovate-logs.yaml` deletes each run's log when it ends (skipped while the repository is private). Do not raise the scheduled `LOG_LEVEL`; dispatch a run with `log_level: debug` to debug.
 - `reforge/` is the source of truth for the `renovate` area and the Renovate-specific reforge roles. The reforge task registry holds the live copies.
 
