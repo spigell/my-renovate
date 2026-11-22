@@ -1,0 +1,8 @@
+{
+  "name": "my-renovate",
+  "private": true,
+  "description": "Central Renovate runner and shared Renovate configuration",
+  "scripts": {
+    "validate": "bash scripts/validate-config.sh"
+  }
+}

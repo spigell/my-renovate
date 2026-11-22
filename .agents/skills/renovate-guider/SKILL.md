@@ -26,9 +26,13 @@ The central config implements specific custom regex managers. When troubleshooti
 ### 3. Validating the Central Config
 Always run the validator against the shared config before testing behavior or pushing changes:
 
-`yarn dlx --package renovate@43.222.0 renovate-config-validator --strict default.json`
+`npm run validate`
 
-Run the same strict validator on a target repository's `renovate.json` when changing a local pin.
+It runs `scripts/validate-config.sh`: the strict validator at the Renovate version the runner uses (`renovate-version` in `.github/workflows/renovate.yaml`), on `default.json`, `renovate.json` and `presets/*.json`. Never validate with an unpinned or self-chosen version: a newer Renovate can demand migrations the runner's version rejects (for example `dependencyDashboardLabels` against `dependencyDashboard.labels` in Renovate 44).
+
+When changing a local pin, validate the target repository's `renovate.json` from that repository:
+
+`curl -fsSL https://raw.githubusercontent.com/spigell/my-renovate/main/scripts/validate-config.sh | bash -s -- renovate.json`
 
 ### 4. Local Dry Runs with Target Repository
 To test Renovate against a specific target repository (e.g., `/spigell-reforge-ai/my-shared-infra/my-images`) and see its proposed updates, you must navigate into that repository's directory. This ensures Renovate correctly identifies the local context and its `renovate.json` configuration.
